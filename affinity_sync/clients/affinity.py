@@ -67,6 +67,12 @@ class AffinityClient:
             params=params or {}
         )
 
+        if inner_type == affinity_types.ListEntry and 'listId' in response.data[0].keys():
+            self.__logger.warning('Removing listId from list entries - this is a bug in the V2 API')
+
+            for row in response.data:
+                del row['listId']
+
         yield from [inner_type.model_validate(item | (extra_attrs or {})) for item in response.data]
 
         while response.pagination.next_url is not None:

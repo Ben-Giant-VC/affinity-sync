@@ -194,9 +194,9 @@ CREATE TABLE IF NOT EXISTS affinity.view_entry
     entity           JSONB,
     valid_from       TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     valid_to         TIMESTAMP,
-    UNIQUE (view_affinity_id, affinity_id, valid_from),
-    UNIQUE (view_affinity_id, affinity_id, valid_to)
+    UNIQUE (list_affinity_id, view_affinity_id, affinity_id, valid_from),
+    UNIQUE (list_affinity_id, view_affinity_id, affinity_id, valid_to)
 );
 CREATE INDEX IF NOT EXISTS idx_view_entry_view_affinity_id_affinity_id_valid_to_valid_from
-    ON affinity.view_entry (view_affinity_id, affinity_id, valid_to, valid_from);
+    ON affinity.view_entry (list_affinity_id, view_affinity_id, affinity_id, valid_to, valid_from);
 '''
