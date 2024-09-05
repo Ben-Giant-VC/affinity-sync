@@ -7,8 +7,8 @@ import psycopg
 from psycopg import sql
 from psycopg.rows import dict_row
 
-from module_types import base, db_types, affinity_v2_api as affintiy_types
-from resources import schema
+from ..module_types import base, db_types, affinity_v2_api as affintiy_types
+from ..resources import schema
 
 Table = Literal[
     'company',

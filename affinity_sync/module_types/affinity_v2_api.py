@@ -3,7 +3,7 @@ from typing import Any
 
 import pydantic
 
-from module_types import base
+from . import base
 
 
 class ApiCallEntitlement(base.Base, extra='ignore'):

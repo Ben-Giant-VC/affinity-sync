@@ -1,7 +1,7 @@
 import datetime
 import typing
 
-from module_types import affinity_v2_api, base
+from . import affinity_v2_api, base
 
 
 class FieldMetadata(affinity_v2_api.FieldMetadata):

@@ -3,8 +3,8 @@ import itertools
 import logging
 from typing import Generator
 
-import clients
-from module_types import base, db_types
+from . import clients
+from .module_types import base, db_types
 
 
 def insert_entitlement_after(func):

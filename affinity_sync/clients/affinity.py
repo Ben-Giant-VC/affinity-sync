@@ -4,7 +4,7 @@ from typing import Generator, Type
 import backoff
 import requests
 
-from module_types import affinity_v2_api as affinity_types, base
+from ..module_types import affinity_v2_api as affinity_types, base
 
 
 class AffinityClient:

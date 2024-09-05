@@ -10,9 +10,8 @@ import plotille
 import tabulate
 from rich import console as rich_console
 
-import clients
-import sync as sync_import
-from module_types import db_types
+from . import clients, sync as sync_import
+from .module_types import db_types
 
 
 class RichGroup(click.Group):

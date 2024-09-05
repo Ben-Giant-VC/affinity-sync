@@ -1,7 +1,7 @@
 import logging
 
-import clients
-from module_types import db_types
+from . import clients
+from .module_types import db_types
 
 
 class Reader:
