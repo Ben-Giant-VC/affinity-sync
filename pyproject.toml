@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "affinity_sync"
-version = "0.0.1"
+version = "<CURRENT_VERSION>"
 description = "Sync Affinity CRM data to a Postgres schema"
 readme = "README.md"
 authors = [{ name = "Benjamin Urwin", email = "benurwin@outlook.com" }]
@@ -34,9 +34,3 @@ Homepage = "https://github.com/benurwin/affinity-sync"
 
 [project.scripts]
 affinity_sync = "affinity_sync.cli:cli"
-
-[project.optional-dependencies]
-test = [
-    "build",
-    "twine"
-]
