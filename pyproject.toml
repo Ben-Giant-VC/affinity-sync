@@ -1,0 +1,36 @@
+# pyproject.toml
+
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "affinity-sync"
+version = "0.0.1"
+description = "Sync Affinity CRM data to a Postgres schema"
+readme = "README.md"
+authors = [{ name = "Benjamin Urwin", email = "benurwin@outlook.com" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords = ["affinity", "postgres", "sync"]
+dependencies = [
+    "requests",
+    "psycopg[binary]",
+    "pydantic",
+    "click",
+    "rich",
+    "gnuplotlib",
+    "setuptools",
+    "backoff"
+]
+requires-python = ">=3.9"
+
+[project.urls]
+Homepage = "https://github.com/benurwin/affinity-sync"
+
+[project.scripts]
+affinity_sync = "affinity_sync.cli:cli"
