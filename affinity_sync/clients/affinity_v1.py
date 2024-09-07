@@ -197,7 +197,7 @@ class AffinityClientV1(affinity_base.AffinityBase):
         ]
 
         if len(valid_companies) == 1 or (take_best_match and len(valid_companies) > 0):
-            return response.organizations[0]
+            return valid_companies[0]
 
         if len(valid_companies) > 1:
             self.__logger.error(f'Multiple results found for {name}')
