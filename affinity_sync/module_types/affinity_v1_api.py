@@ -109,7 +109,7 @@ FieldTypeMap = {
 class Company(base.Base):
     id: int
     name: str
-    domain: str
+    domain: str | None
     domains: list[str]
     global_: bool = pydantic.Field(alias='global')
     crunchbase_uuid: str | None
