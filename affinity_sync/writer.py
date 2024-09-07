@@ -151,9 +151,12 @@ class Writer:
         )
 
     @insert_entitlement_after
-    def find_or_create_company(self, name: str, domain: str) -> affinity_types.Company:
+    def find_or_create_company(self, name: str, domain: str | None) -> affinity_types.Company:
         self.__logger.info(f'Finding or creating company - {name}')
-        company = self.__affinity_v1.find_company_by_domain(domain=domain)
+        company = None
+
+        if domain:
+            company = self.__affinity_v1.find_company_by_domain(domain=domain)
 
         if company:
             self.__logger.info(f'Company found by domain - {domain}')
