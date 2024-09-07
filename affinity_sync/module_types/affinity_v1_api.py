@@ -126,7 +126,7 @@ class NewCompany(base.Base):
     person_ids: list[int]
 
 
-class ListEntry(base.Base):
+class OpportunityListEntry(base.Base):
     id: int
     creator_id: int
     list_id: int
@@ -140,7 +140,7 @@ class Opportunity(base.Base):
     name: str
     person_ids: list[int]
     organization_ids: list[int]
-    list_entries: list[ListEntry]
+    list_entries: list[OpportunityListEntry]
 
     @property
     def list_id(self) -> int:
@@ -161,3 +161,13 @@ class NewOpportunity(base.Base):
     list_id: int
     person_ids: list[int] = pydantic.Field(default_factory=list)
     organization_ids: list[int] = pydantic.Field(default_factory=list)
+
+
+class ListEntry(base.Base):
+    id: int
+    list_id: int
+    creator_id: int
+    entity_id: int
+    created_at: datetime.datetime
+    entity_type: int | None = None
+    entity: Person | Company | Opportunity

@@ -281,3 +281,24 @@ class AffinityClientV1(affinity_base.AffinityBase):
             json=new_opportunity.model_dump(),
             result_type=affinity_types.Opportunity
         )
+
+    def fetch_all_list_entries(self, list_id: int) -> list[affinity_types.ListEntry]:
+        self.__logger.debug(f'Fetching list entries - {list_id}')
+        return self._send_request(
+            method='get',
+            url=self.__url(f'lists/{list_id}/list-entries'),
+            result_type=list[affinity_types.ListEntry]
+        )
+
+    def create_list_entry(
+            self,
+            list_id: int,
+            entity_id: int,
+    ) -> affinity_types.ListEntry:
+        self.__logger.info(f'Creating list entry - {list_id} - {entity_id}')
+        return self._send_request(
+            method='post',
+            url=self.__url(f'lists/{list_id}/list-entries'),
+            result_type=affinity_types.ListEntry,
+            json={'entity_id': entity_id}
+        )

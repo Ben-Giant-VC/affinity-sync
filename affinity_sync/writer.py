@@ -156,11 +156,13 @@ class Writer:
         company = self.__affinity_v1.find_company_by_domain(domain=domain)
 
         if company:
+            self.__logger.info(f'Company found by domain - {domain}')
             return company
 
         company = self.__affinity_v1.find_company_by_name(name=name)
 
         if company:
+            self.__logger.info(f'Company found by name - {name}')
             return company
 
         return self.__affinity_v1.create_company(
@@ -193,6 +195,60 @@ class Writer:
                 person_ids=person_ids
             )
         )
+
+    @insert_entitlement_after
+    def find_or_create_list_entry(
+            self,
+            entity_id: int,
+            entity_type: Literal['person', 'company', 'opportunity'],
+            list_id: int,
+            qualifiers: dict[str, str] | None = None
+    ) -> affinity_types.ListEntry:
+        self.__logger.info(f'Finding or creating list entry - {entity_id} - {list_id}')
+        entries = self.__affinity_v1.fetch_all_list_entries(list_id=list_id)
+        mathing_entries = [entry for entry in entries if entry.entity_id == entity_id]
+
+        self.__logger.info(f'Found {len(mathing_entries)} entries for entity - {entity_id}')
+
+        if mathing_entries and qualifiers:
+            still_matching_entries = []
+
+            for entry in mathing_entries:
+                match = True
+                current_field_values = self.__affinity_v1.fetch_field_values(
+                    entity_id=entity_id,
+                    entity_type=entity_type,
+                    list_entry_id=entry.id
+                )
+
+                for field_name, desired_field_value in qualifiers.items():
+                    field, v1_field = self.__get_field(field_name=field_name, list_id=list_id)
+                    desired_field_value = desired_field_value \
+                        if isinstance(desired_field_value, list) else [desired_field_value]
+                    current_field_values = [
+                        value.value
+                        for value in current_field_values
+                        if value.field_id == v1_field.id
+                    ]
+                    missing_values = [value for value in desired_field_value if value not in current_field_values]
+                    extra_values = [value for value in current_field_values if value not in desired_field_value]
+
+                    if missing_values or extra_values:
+                        match = False
+                        break
+
+                if match:
+                    still_matching_entries.append(entry)
+
+            mathing_entries = still_matching_entries
+
+        if len(mathing_entries) > 1:
+            raise ValueError(f'Multiple entries found for entity - {entity_id} with qualifiers - {qualifiers}')
+
+        if mathing_entries:
+            return mathing_entries[0]
+
+        return self.__affinity_v1.create_list_entry(entity_id=entity_id, list_id=list_id)
 
     @insert_entitlement_after
     def update_person(self, person_id: int, new_person: affinity_types.NewPerson) -> affinity_types.Person:
