@@ -181,7 +181,7 @@ class AffinityClientV1(affinity_base.AffinityBase):
 
         return None
 
-    def find_company_by_name(self, name: str) -> affinity_types.Company | None:
+    def find_company_by_name(self, name: str, take_best_match: bool = False) -> affinity_types.Company | None:
         self.__logger.info(f'Finding company by name - {name}')
         response = self._send_request(
             method='get',
@@ -196,7 +196,7 @@ class AffinityClientV1(affinity_base.AffinityBase):
             if company.name.upper() == name.upper()
         ]
 
-        if len(valid_companies) == 1:
+        if len(valid_companies) == 1 or (take_best_match and len(valid_companies) > 0):
             return response.organizations[0]
 
         if len(valid_companies) > 1:
