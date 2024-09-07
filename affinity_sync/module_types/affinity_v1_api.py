@@ -113,6 +113,7 @@ class Company(base.Base):
     domains: list[str]
     global_: bool = pydantic.Field(alias='global')
     crunchbase_uuid: str | None
+    person_ids: list[int] = pydantic.Field(default_factory=list)
 
 
 class CompanyQueryResponse(base.Base):
