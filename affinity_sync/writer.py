@@ -310,6 +310,10 @@ class Writer:
 
         values_to_remove = [value for value in current_values if value.value not in field_value]
         values_to_add = [value for value in field_value if value not in [value.value for value in current_values]]
+        print('Current values:', [value.value for value in current_values])
+        print('New values:', field_value)
+        print('Values to remove:', values_to_remove)
+        print('Values to add:', values_to_add)
 
         if not values_to_remove and not values_to_add:
             self.__logger.info('No changes required')
