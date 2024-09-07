@@ -10,7 +10,8 @@ import plotille
 import tabulate
 from rich import console as rich_console
 
-from . import clients, sync as sync_import
+from . import clients
+from . import sync as sync_import
 from .module_types import db_types
 
 
@@ -155,6 +156,17 @@ def ls(live: bool, list: bool, view: bool, people: bool, companies: bool, due: b
     # Fetch all valid syncs
     syncs = client.fetch_syncs() if not due else client.fetch_due_syncs()
 
+    if not syncs:
+        sync_import.Sync(
+            affinity_api_key=config['affinity-api-key'],
+            db_host=config['postgres-host'],
+            db_port=config['postgres-port'],
+            db_user=config['postgres-user'],
+            db_password=config['postgres-password'],
+            db_name=config['postgres-database']
+        ).set_up_syncs()
+        syncs = client.fetch_syncs() if not due else client.fetch_due_syncs()
+
     # Filter to requested types
     filtered_syncs = [
         sync for sync in syncs
@@ -283,11 +295,11 @@ def sync():
 
     runner = sync_import.Sync(
         affinity_api_key=config['affinity-api-key'],
-        postgres_host=config['postgres-host'],
-        postgres_port=config['postgres-port'],
-        postgres_user=config['postgres-user'],
-        postgres_password=config['postgres-password'],
-        postgres_database=config['postgres-database']
+        db_host=config['postgres-host'],
+        db_port=config['postgres-port'],
+        db_user=config['postgres-user'],
+        db_password=config['postgres-password'],
+        db_name=config['postgres-database']
     )
 
     number_to_run = ls(live=False, list=False, view=False, people=False, companies=False, due=True)

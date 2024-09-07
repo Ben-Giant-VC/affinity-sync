@@ -1,57 +1,28 @@
 import logging
 from typing import Generator, Type
 
-import backoff
-import requests
-
+from . import affinity_base
 from ..module_types import affinity_v2_api as affinity_types, base
 
 
-class AffinityClient:
+class AffinityClientV2(affinity_base.AffinityBase):
     __URL = 'https://api.affinity.co/v2/'
 
     def __init__(self, api_key: str):
-        self.__session = requests.Session()
-        self.__session.headers.update({'Authorization': f'Bearer {api_key}'})
-        self.__logger = logging.getLogger('AffinityClient')
-        self.api_call_entitlement: affinity_types.ApiCallEntitlement | None = None
-
-    def __extract_rate_limit(self, response: requests.Response):
-        if not all(
-                key in response.headers
-                for key in [
-                    'X-Ratelimit-Limit-User',
-                    'X-Ratelimit-Limit-User-Remaining',
-                    'X-Ratelimit-Limit-User-Reset',
-                    'X-Ratelimit-Limit-Org',
-                    'X-Ratelimit-Limit-Org-Remaining',
-                    'X-Ratelimit-Limit-Org-Reset',
-                ]
-        ):
-            raise ValueError('Rate limit headers not found in response')
-
-        self.api_call_entitlement = affinity_types.ApiCallEntitlement.model_validate(response.headers)
+        self.__logger = logging.getLogger('AffinityClientV2')
+        super().__init__(api_key)
 
     def __url(self, path: str) -> str:
         return f'{self.__URL}{path}'
 
-    @backoff.on_exception(
-        backoff.expo,
-        requests.exceptions.ConnectionError
-    )
-    def __send_request(
-            self,
-            method: str,
-            url: str,
-            result_type: Type[base.BaseSubclass],
-            params: dict | None = None,
-    ) -> base.BaseSubclass:
-        self.__logger.debug(f'Sending {method.upper()} request to {url}')
-        response = self.__session.request(method, url, params=params)
-        response.raise_for_status()
-        self.__extract_rate_limit(response)
+    def __handle_bugs(self, response: affinity_types.PaginatedResponse) -> affinity_types.PaginatedResponse:
+        if response.data and 'listId' in response.data[0].keys():
+            self.__logger.warning('Removing listId from list entries - this is a bug in the V2 API')
 
-        return result_type.model_validate(response.json())
+            for row in response.data:
+                del row['listId']
+
+        return response
 
     def __get_paginated_results(
             self,
@@ -60,33 +31,23 @@ class AffinityClient:
             params: dict | None = None,
             extra_attrs: dict | None = None
     ) -> Generator[base.BaseSubclass, None, None]:
-        response = self.__send_request(
+        response = self._send_request(
             method='get',
             url=url,
             result_type=affinity_types.PaginatedResponse,
             params=params or {}
         )
-
-        if inner_type == affinity_types.ListEntry and 'listId' in response.data[0].keys():
-            self.__logger.warning('Removing listId from list entries - this is a bug in the V2 API')
-
-            for row in response.data:
-                del row['listId']
+        response = self.__handle_bugs(response)
 
         yield from [inner_type.model_validate(item | (extra_attrs or {})) for item in response.data]
 
         while response.pagination.next_url is not None:
-            response = self.__send_request(
+            response = self._send_request(
                 method='get',
                 url=response.pagination.next_url,
                 result_type=affinity_types.PaginatedResponse
             )
-
-            if inner_type == affinity_types.ListEntry and 'listId' in response.data[0].keys():
-                self.__logger.warning('Removing listId from list entries - this is a bug in the V2 API')
-
-                for row in response.data:
-                    del row['listId']
+            response = self.__handle_bugs(response)
 
             yield from [inner_type.model_validate(item | (extra_attrs or {})) for item in response.data]
 
@@ -171,4 +132,13 @@ class AffinityClient:
             url=self.__url('persons'),
             params={'fieldTypes': ['enriched', 'global', 'relationship-intelligence']},
             inner_type=affinity_types.Person
+        )
+
+    def get_single_person(self, person_id: int) -> affinity_types.Person:
+        self.__logger.info(f'Getting person {person_id}')
+
+        return self._send_request(
+            method='get',
+            url=self.__url(f'persons/{person_id}'),
+            result_type=affinity_types.Person
         )

@@ -111,6 +111,7 @@ class PostgresClient:
         'JSONB',
         'TIMESTAMP'
     ]:
+
         if info['title'].upper().endswith(' AT'):
             return 'TIMESTAMP'
 
@@ -285,11 +286,13 @@ class PostgresClient:
             self,
             table: Table,
             only_live: bool = True,
-            qualifier: dict[str, Any] = None
+            qualifiers: list[db_types.Qualification] = None
     ) -> list[base.BaseSubclass]:
         self.__logger.info(f'Fetching rows from {table}')
-        has_conditions = only_live or qualifier
-        qualifier = qualifier or {}
+
+        if only_live:
+            qualifiers = (qualifiers or []) + [db_types.Qualification(field='valid_to', value=None, type='is')]
+
         query = sql.SQL(
             '''
                 SELECT
@@ -299,13 +302,8 @@ class PostgresClient:
             '''
         ).format(
             table=sql.Identifier(table),
-            where=sql.SQL('WHERE {conditions}' if has_conditions else '').format(
-                conditions=sql.SQL(' AND ').join(
-                    [
-                        sql.SQL('{k} = {v}').format(k=sql.Identifier(k), v=v)
-                        for k, v in qualifier.items()
-                    ] + [sql.SQL('valid_to IS NULL') if only_live else sql.SQL('')]
-                )
+            where=sql.SQL('WHERE {conditions}' if qualifiers else '').format(
+                conditions=sql.SQL(' AND ').join([qualification.query for qualification in qualifiers])
             )
         )
 
@@ -441,7 +439,7 @@ class PostgresClient:
         )
 
     def insert_call_entitlement(self, entitlement: affintiy_types.ApiCallEntitlement) -> None:
-        self.__logger.info(f'Inserting call entitlement - {entitlement.org_remaining} remaining')
+        self.__logger.debug(f'Inserting call entitlement - {entitlement.org_remaining} remaining')
         self.execute(
             sql.SQL(
                 '''

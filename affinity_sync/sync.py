@@ -4,6 +4,7 @@ import logging
 from typing import Generator
 
 from . import clients
+from . import view_builder
 from .module_types import base, db_types
 
 
@@ -22,22 +23,28 @@ class Sync:
     def __init__(
             self,
             affinity_api_key: str,
-            postgres_host: str,
-            postgres_user: str,
-            postgres_port: int,
-            postgres_password: str,
-            postgres_database: str
+            db_host: str,
+            db_port: int,
+            db_name: str,
+            db_user: str,
+            db_password: str,
     ):
-        self.__affinity_client = clients.AffinityClient(api_key=affinity_api_key)
+        self.__affinity_client = clients.AffinityClientV2(api_key=affinity_api_key)
         self.__postgres_client = clients.PostgresClient(
-            host=postgres_host,
-            user=postgres_user,
-            port=postgres_port,
-            password=postgres_password,
-            dbname=postgres_database
+            host=db_host,
+            port=db_port,
+            dbname=db_name,
+            user=db_user,
+            password=db_password,
+        )
+        self.__view_builder = view_builder.ListViewBuilder(
+            db_host=db_host,
+            db_port=db_port,
+            db_name=db_name,
+            db_user=db_user,
+            db_password=db_password
         )
         self.__logger = logging.getLogger('Sync')
-        self.__set_up_syncs()
 
     def __sync(
             self,
@@ -65,6 +72,11 @@ class Sync:
     def __sync_people(self) -> None:
         self.__sync(self.__affinity_client.get_people_fields(), 'person_field')
         self.__sync(self.__affinity_client.get_people(), 'person')
+
+    @insert_entitlement_after
+    def sync_single_person(self, person_id: int) -> None:
+        person = self.__affinity_client.get_single_person(person_id)
+        self.__postgres_client.insert_as_of_relations('person', [person])
 
     @insert_entitlement_after
     def __sync_companies(self) -> None:
@@ -169,7 +181,7 @@ class Sync:
         self.__postgres_client.remove_syncs(extra_syncs)
 
     @insert_entitlement_after
-    def __set_up_syncs(self) -> None:
+    def set_up_syncs(self) -> None:
         self.__set_up_people_and_company_syncs()
         self.__set_up_list_syncs()
         self.__set_up_view_syncs()
@@ -186,6 +198,7 @@ class Sync:
             table_name='list_entry',
             qualifier={'list_affinity_id': list_id}
         )
+        self.__view_builder.build(list_id)
 
     @insert_entitlement_after
     def __sync_view(self, list_id: int, view_id: int) -> None:
@@ -211,6 +224,7 @@ class Sync:
         self.__postgres_client.insert_sync_log(db_types.SyncLog(sync_id=sync.id))
 
     def run(self):
+        self.set_up_syncs()
 
         for sync in self.__postgres_client.fetch_due_syncs():
             self.__do_sync(sync)

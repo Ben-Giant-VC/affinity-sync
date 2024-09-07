@@ -1,5 +1,5 @@
 import datetime
-from typing import Any
+from typing import Any, Literal
 
 import pydantic
 
@@ -38,16 +38,25 @@ class PaginatedResponse(base.Base):
     pagination: Pagination
 
 
+FieldTypes = Literal['enriched', 'global', 'list', 'relationship-intelligence']
+
+FieldValueTypes = Literal[
+    'person', 'person-multi', 'company', 'company-multi', 'filterable-text', 'filterable-text-multi', 'number',
+    'number-multi', 'datetime', 'location', 'location-multi', 'text', 'ranked-dropdown', 'dropdown', 'dropdown-multi',
+    'formula-number', 'interaction'
+]
+
+
 class FieldMetadata(base.Base):
     affinity_id: str = pydantic.Field(
         validation_alias=pydantic.AliasChoices('id', 'affinity_id')
     )
     name: str
-    type: str
+    type: FieldTypes
     enrichment_source: str | None = pydantic.Field(
         validation_alias=pydantic.AliasChoices('enrichmentSource', 'enrichment_source')
     )
-    value_type: str = pydantic.Field(
+    value_type: FieldValueTypes = pydantic.Field(
         validation_alias=pydantic.AliasChoices('valueType', 'value_type')
     )
 
@@ -155,4 +164,4 @@ class Person(base.Base):
         validation_alias=pydantic.AliasChoices('emailAddresses', 'email_addresses')
     )
     type: str
-    fields: list[Field]
+    fields: list[Field] = pydantic.Field(default_factory=list)

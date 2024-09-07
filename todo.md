@@ -1,11 +1,14 @@
 # ToDo:
 
 - Write postgres client - DONE
-- Build sync tracking and scheduling
+- Build sync tracking and scheduling - DONE
+
+- Create person
+- Update person
+- Delete person
+- Modify person fields
+
+
 - Build view generation
-
-
-- Write postgres client tests
-- Write affinity client tests
-- Add webook integration
-- 
+- Tests
+- Webhook integration

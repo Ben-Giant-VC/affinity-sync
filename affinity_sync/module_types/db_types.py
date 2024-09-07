@@ -1,19 +1,21 @@
 import datetime
 import typing
 
+from psycopg import sql
+
 from . import affinity_v2_api, base
 
 
 class FieldMetadata(affinity_v2_api.FieldMetadata):
     id: int
-    affinity_id: int
+    affinity_id: str
     valid_from: datetime.datetime
     valid_to: datetime.datetime | None
 
 
 class ListFieldMetadata(affinity_v2_api.ListFieldMetadata):
     id: int
-    affinity_id: int
+    affinity_id: str
     valid_from: datetime.datetime
     valid_to: datetime.datetime | None
 
@@ -128,3 +130,44 @@ SyncTypes = typing.Union[
 class SyncLog(base.Base):
     sync_id: int
     created_at: datetime.datetime | None = None
+
+
+class Qualification(base.Base):
+    field: str
+    value: str | int | None
+    type: typing.Literal['equals', 'value_in_field', 'field_in_value', 'is', 'ilike']
+
+    @property
+    def query(self) -> sql.Composed:
+
+        if self.type == 'equals':
+            return sql.SQL("{field} = {value}").format(
+                field=sql.Identifier(self.field),
+                value=sql.Literal(self.value)
+            )
+
+        if self.type == 'value_in_field':
+            return sql.SQL("{value} = ANY({field})").format(
+                field=sql.Identifier(self.field),
+                value=sql.Literal(self.value)
+            )
+
+        if self.type == 'field_in_value':
+            return sql.SQL("{field} = ANY({value})").format(
+                field=sql.Identifier(self.field),
+                value=sql.Literal(self.value)
+            )
+
+        if self.type == 'is':
+            return sql.SQL("{field} IS {value}").format(
+                field=sql.Identifier(self.field),
+                value=sql.Literal(self.value)
+            )
+
+        if self.type == 'ilike':
+            return sql.SQL("{field} ILIKE {value}").format(
+                field=sql.Identifier(self.field),
+                value=sql.Literal(self.value)
+            )
+
+        raise ValueError(f'Unknown type {self.type}')
