@@ -122,7 +122,7 @@ class CompanyQueryResponse(base.Base):
 
 class NewCompany(base.Base):
     name: str
-    domain: str
+    domain: str | None
     person_ids: list[int]
 
 
