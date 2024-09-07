@@ -303,7 +303,7 @@ class Writer:
         if not isinstance(field_value, list):
             field_value = [field_value]
 
-        field_value = filter(None, field_value)
+        field_value = list(filter(None, field_value))
 
         if isinstance(next(iter(field_value), None), datetime.datetime):
             field_value = [value.strftime('%Y-%m-%dT%H:%M:%S') for value in field_value]
