@@ -125,7 +125,7 @@ class Writer:
         if not affinity_types.FieldTypeMap.get(value_type):
             raise ValueError(f'Invalid field value type - {value_type}')
 
-        if not isinstance(value, affinity_types.FieldTypeMap[value_type]):
+        if not isinstance(value, affinity_types.FieldTypeMap[value_type]) and value is not None:
             raise ValueError(f'Field value type mismatch - {value} must be of type {value_type}')
 
     @insert_entitlement_after
