@@ -9,6 +9,10 @@ from ..module_types import base, affinity_v2_api as affinity_types
 T = TypeVar('T', base.Base, list[base.Base])
 
 
+class TryAgainError(Exception):
+    pass
+
+
 class AffinityBase:
     __URL = 'https://api.affinity.co/v2/'
 
@@ -37,7 +41,8 @@ class AffinityBase:
 
     @backoff.on_exception(
         backoff.expo,
-        requests.exceptions.ConnectionError
+        (requests.exceptions.ConnectionError, TryAgainError),
+        max_tries=3
     )
     def _send_request(
             self,
@@ -55,6 +60,10 @@ class AffinityBase:
             json=json,
             **({'auth': ('username', self.__api_key)} if 'v2' not in url else {})
         )
+
+        if response.status_code == 422:
+            raise TryAgainError()
+
         response.raise_for_status()
         self.__extract_rate_limit(response)
 
