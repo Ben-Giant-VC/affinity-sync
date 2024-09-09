@@ -126,7 +126,9 @@ class Writer:
             raise ValueError(f'Invalid field value type - {value_type}')
 
         if not isinstance(value, affinity_types.FieldTypeMap[value_type]) and value is not None:
-            raise ValueError(f'Field value type mismatch - {value} must be of type {value_type}')
+            raise ValueError(
+                f'Field value type mismatch - {value} must be of type {affinity_types.FieldTypeMap[value_type]}'
+            )
 
     @insert_entitlement_after
     def find_or_create_person(self, first_name: str, last_name: str, emails: list[str]) -> affinity_types.Person:
