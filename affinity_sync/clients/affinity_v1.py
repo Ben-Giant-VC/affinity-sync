@@ -150,7 +150,7 @@ class AffinityClientV1(affinity_base.AffinityBase):
             result_type=affinity_types.DeleteResponse
         )
 
-    def find_company_by_domain(self, domain: str) -> affinity_types.Company | None:
+    def find_company_by_domain(self, domain: str, take_best_match: bool = False) -> affinity_types.Company | None:
         self.__logger.debug(f'Finding company by domain - {domain}')
         response = self._send_request(
             method='get',
@@ -159,14 +159,20 @@ class AffinityClientV1(affinity_base.AffinityBase):
             params={'term': domain}
         )
 
-        if len(response.organizations) > 1:
+        valid_companies = [
+            company
+            for company in response.organizations
+            if any(company_domain.lower() == domain.lower() for company_domain in company.domains)
+        ]
+
+        if len(valid_companies) == 1 or (take_best_match and len(valid_companies) > 0):
+            return valid_companies[0]
+
+        if len(valid_companies) > 1:
             self.__logger.error(f'Multiple results found for {domain}')
             self.__logger.error(response.organizations)
 
             raise affinity_types.MultipleResults(f'Multiple results found for {domain}')
-
-        if len(response.organizations) == 1:
-            return response.organizations[0]
 
         return None
 

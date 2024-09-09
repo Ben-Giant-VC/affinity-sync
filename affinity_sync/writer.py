@@ -161,7 +161,7 @@ class Writer:
         company = None
 
         if domain:
-            company = self.__affinity_v1.find_company_by_domain(domain=domain)
+            company = self.__affinity_v1.find_company_by_domain(domain=domain, take_best_match=take_best_match)
 
         if company:
             self.__logger.info(f'Company found by domain - {domain}')
