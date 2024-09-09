@@ -131,8 +131,16 @@ class Writer:
             )
 
     @insert_entitlement_after
-    def find_or_create_person(self, first_name: str, last_name: str, emails: list[str]) -> affinity_types.Person:
+    def find_or_create_person(
+            self,
+            first_name: str,
+            last_name: str,
+            emails: list[str],
+            organization_ids: list[int] | None = None
+    ) -> affinity_types.Person:
         self.__logger.info(f'Finding or creating person - {first_name} {last_name}')
+        organization_ids = organization_ids or []
+
         person = self.__affinity_v1.find_person_by_emails(emails=emails)
 
         if person:
@@ -148,7 +156,7 @@ class Writer:
                 first_name=first_name,
                 last_name=last_name,
                 emails=emails,
-                organization_ids=[]
+                organization_ids=organization_ids
             )
         )
 
