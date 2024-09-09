@@ -350,7 +350,7 @@ class Writer:
         if list_id is not None and list_entry_id is None:
             raise ValueError('list_entry_id is required when list_id is provided')
 
-        self.__logger.info(f'Updating fields - {fields}')
+        self.__logger.info(f'Updating fields - {len(fields)}')
         current_values = self.__affinity_v1.fetch_field_values(
             entity_id=entity_id,
             entity_type=entity_type,
