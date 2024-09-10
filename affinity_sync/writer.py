@@ -1,9 +1,10 @@
 import datetime
 import functools
 import logging
-from typing import Literal
+from typing import Literal, Any
 
-from . import clients
+from affinity_sync.clients import affinity_base
+from . import clients, reader
 from .module_types import affinity_v1_api as affinity_types
 from .module_types import affinity_v2_api as affinity_types_v2
 
@@ -42,7 +43,13 @@ class Writer:
             db_password: str,
     ):
         self.__affinity_v1 = clients.AffinityClientV1(api_key=affinity_api_key)
-        self.__affinity_v2 = clients.AffinityClientV2(api_key=affinity_api_key)
+        self.__reader = reader.Reader(
+            db_host=db_host,
+            db_port=db_port,
+            db_name=db_name,
+            db_user=db_user,
+            db_password=db_password
+        )
         self.__postgres_client = clients.PostgresClient(
             host=db_host,
             port=db_port,
@@ -53,10 +60,7 @@ class Writer:
         self.__list_fields: dict[int, dict[str, tuple[affinity_types_v2.FieldMetadata, affinity_types.Field]]] = {}
 
     def insert_call_entitlement(self):
-        v1 = self.__affinity_v1.api_call_entitlement
-        v2 = self.__affinity_v2.api_call_entitlement
-        lower = min(filter(None, [v1, v2]), key=lambda x: x.org_remaining)
-        self.__postgres_client.insert_call_entitlement(entitlement=lower)
+        self.__postgres_client.insert_call_entitlement(entitlement=self.__affinity_v1.api_call_entitlement)
 
     @functools.cached_property
     def __v1_fields(self) -> list[affinity_types.Field]:
@@ -136,9 +140,31 @@ class Writer:
             first_name: str,
             last_name: str,
             emails: list[str],
-            organization_ids: list[int] | None = None
+            organization_ids: list[int] | None = None,
+            cached_field_name: str | None = None,
+            cached_filed_value: Any | None = None
     ) -> affinity_types.Person:
         self.__logger.info(f'Finding or creating person - {first_name} {last_name}')
+
+        if cached_field_name and not cached_filed_value or not cached_field_name and cached_filed_value:
+            raise ValueError('Both cached_field_name and cached_filed_value must be provided to use cached lookup')
+
+        if cached_field_name:
+            self.__logger.info(f'Finding person by cached field - {cached_field_name} - {cached_filed_value}')
+            stale_person_id = self.__reader.get_people_ids_by_field(
+                field_name=cached_field_name,
+                field_values=[cached_filed_value]
+            )
+
+            if len(stale_person_id) == 1:
+                self.__logger.info(f'Person found by cached field - {cached_field_name} - {cached_filed_value}')
+
+                try:
+                    return self.__affinity_v1.find_person_by_id(person_id=stale_person_id[0])
+
+                except affinity_base.TryAgainError:
+                    self.__logger.info('Person must have been deleted')
+
         organization_ids = organization_ids or []
 
         person = self.__affinity_v1.find_person_by_emails(emails=emails)
@@ -165,10 +191,31 @@ class Writer:
             self,
             name: str,
             domain: str | None,
-            take_best_match: bool = False
+            take_best_match: bool = False,
+            cached_field_name: str | None = None,
+            cached_filed_value: Any | None = None
     ) -> affinity_types.Company:
         self.__logger.info(f'Finding or creating company - {name}')
         company = None
+
+        if cached_field_name and not cached_filed_value or not cached_field_name and cached_filed_value:
+            raise ValueError('Both cached_field_name and cached_filed_value must be provided to use cached lookup')
+
+        if cached_field_name:
+            self.__logger.info(f'Finding company by cached field - {cached_field_name} - {cached_filed_value}')
+            stale_company_id = self.__reader.get_company_ids_by_field(
+                field_name=cached_field_name,
+                field_values=[cached_filed_value]
+            )
+
+            if len(stale_company_id) == 1:
+                self.__logger.info(f'Company found by cached field - {cached_field_name} - {cached_filed_value}')
+
+                try:
+                    return self.__affinity_v1.find_company_by_id(company_id=stale_company_id[0])
+
+                except affinity_base.TryAgainError:
+                    self.__logger.info('Company must have been deleted')
 
         if domain:
             company = self.__affinity_v1.find_company_by_domain(domain=domain, take_best_match=take_best_match)

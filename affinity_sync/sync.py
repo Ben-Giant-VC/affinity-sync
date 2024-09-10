@@ -37,7 +37,7 @@ class Sync:
             user=db_user,
             password=db_password,
         )
-        self.__view_builder = view_builder.ListViewBuilder(
+        self.__view_builder = view_builder.ViewBuilder(
             db_host=db_host,
             db_port=db_port,
             db_name=db_name,
@@ -72,16 +72,13 @@ class Sync:
     def __sync_people(self) -> None:
         self.__sync(self.__affinity_client.get_people_fields(), 'person_field')
         self.__sync(self.__affinity_client.get_people(), 'person')
-
-    @insert_entitlement_after
-    def sync_single_person(self, person_id: int) -> None:
-        person = self.__affinity_client.get_single_person(person_id)
-        self.__postgres_client.insert_as_of_relations('person', [person])
+        self.__view_builder.build_people()
 
     @insert_entitlement_after
     def __sync_companies(self) -> None:
         self.__sync(self.__affinity_client.get_company_fields(), 'company_field')
         self.__sync(self.__affinity_client.get_companies(), 'company')
+        self.__view_builder.build_companies()
 
     @insert_entitlement_after
     def __sync_list_metadata(self) -> None:
@@ -162,7 +159,11 @@ class Sync:
                 self.__sync_list_view_metadata(list_sync.data.affinity_list_id)
                 views = self.__postgres_client.fetch_rows(
                     table='view_metadata',
-                    qualifier={'list_affinity_id': list_sync.data.affinity_list_id}
+                    qualifiers=[db_types.Qualification(
+                        field='list_affinity_id',
+                        value=list_sync.data.affinity_list_id,
+                        type='equals'
+                    )]
                 )
                 required_view_syncs.extend([(view.affinity_id, list_sync.data.affinity_list_id) for view in views])
 
@@ -198,7 +199,7 @@ class Sync:
             table_name='list_entry',
             qualifier={'list_affinity_id': list_id}
         )
-        self.__view_builder.build(list_id)
+        self.__view_builder.build_list(list_id)
 
     @insert_entitlement_after
     def __sync_view(self, list_id: int, view_id: int) -> None:

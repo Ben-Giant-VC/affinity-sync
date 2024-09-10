@@ -84,13 +84,20 @@ class PostgresClient:
             cursor.execute(query)
             self.connection().commit()
 
-    def fetch(self, query: sql.SQL | sql.Composed, result_type: Type[base.BaseSubclass]) -> list[base.BaseSubclass]:
+    def fetch(
+            self,
+            query: sql.SQL | sql.Composed,
+            result_type: Type[base.BaseSubclass] | None = None
+    ) -> list[base.BaseSubclass | dict]:
         class Wrapper(base.Base):
             payload: result_type
 
         with self.connection().cursor(row_factory=dict_row) as cursor:
             cursor.execute(query)
             results = cursor.fetchall()
+
+            if not result_type:
+                return results if results else []
 
             if typing.get_origin(result_type) is typing.Union:
                 return [Wrapper(payload=result).payload for result in results]
@@ -308,6 +315,42 @@ class PostgresClient:
         )
 
         return self.fetch(query, TABLE_TYPES[table])
+
+    def fetch_people_ids_by_field(self, field_name: str, field_values: list) -> list[int]:
+        query = sql.SQL(
+            '''
+                SELECT
+                    affinity_id
+                FROM affinity.person_view
+                WHERE {field_name} = ANY(ARRAY[{field_values}])
+            '''
+        ).format(
+            field_name=sql.Identifier(field_name),
+            field_values=sql.SQL(',').join(
+                sql.SQL(f'\'"{value}"\'::JSONB').format(value=sql.Literal(value))
+                for value in field_values
+            )
+        )
+
+        return [x['affinity_id'] for x in self.fetch(query)]
+
+    def fetch_company_ids_by_field(self, field_name: str, field_values: list) -> list[int]:
+        query = sql.SQL(
+            '''
+                SELECT
+                    affinity_id
+                FROM affinity.company_view
+                WHERE {field_name} = ANY(ARRAY[{field_values}])
+            '''
+        ).format(
+            field_name=sql.Identifier(field_name),
+            field_values=sql.SQL(',').join(
+                sql.SQL(f'\'"{value}"\'::JSONB').format(value=sql.Literal(value))
+                for value in field_values
+            )
+        )
+
+        return [x['affinity_id'] for x in self.fetch(query)]
 
     def fetch_syncs(self) -> list[db_types.Sync]:
         self.__logger.info('Fetching syncs')

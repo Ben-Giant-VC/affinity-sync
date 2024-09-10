@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from . import clients
 from .module_types import db_types
@@ -33,6 +34,12 @@ class Reader:
             only_live=only_live,
             qualifiers=qualifiers
         )
+
+    def get_people_ids_by_field(self, field_name: str, field_values: Any) -> list[int]:
+        return self.__postgres_client.fetch_people_ids_by_field(field_name=field_name, field_values=field_values)
+
+    def get_company_ids_by_field(self, field_name: str, field_values: list) -> list[int]:
+        return self.__postgres_client.fetch_company_ids_by_field(field_name=field_name, field_values=field_values)
 
     def get_people_fields(
             self,

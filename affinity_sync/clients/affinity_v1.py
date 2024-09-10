@@ -150,6 +150,22 @@ class AffinityClientV1(affinity_base.AffinityBase):
             result_type=affinity_types.DeleteResponse
         )
 
+    def find_company_by_id(self, company_id: int) -> affinity_types.Company | None:
+        self.__logger.debug(f'Finding company by id - {company_id}')
+        return self._send_request(
+            method='get',
+            url=self.__url(f'organizations/{company_id}'),
+            result_type=affinity_types.Company
+        )
+
+    def find_person_by_id(self, person_id: int) -> affinity_types.Person | None:
+        self.__logger.debug(f'Finding person by id - {person_id}')
+        return self._send_request(
+            method='get',
+            url=self.__url(f'persons/{person_id}'),
+            result_type=affinity_types.Person
+        )
+
     def find_company_by_domain(self, domain: str, take_best_match: bool = False) -> affinity_types.Company | None:
         self.__logger.debug(f'Finding company by domain - {domain}')
         response = self._send_request(

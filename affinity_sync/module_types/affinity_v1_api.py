@@ -33,6 +33,7 @@ class Person(base.Base):
     primary_email: str | None
     emails: list[str]
     organization_ids: list[int] = pydantic.Field(default_factory=list)
+    list_entries: list = pydantic.Field(default_factory=list)
 
 
 class PersonQueryResponse(base.Base):
@@ -114,6 +115,7 @@ class Company(base.Base):
     global_: bool = pydantic.Field(alias='global')
     crunchbase_uuid: str | None
     person_ids: list[int] = pydantic.Field(default_factory=list)
+    list_entries: list = pydantic.Field(default_factory=list)
 
 
 class CompanyQueryResponse(base.Base):
