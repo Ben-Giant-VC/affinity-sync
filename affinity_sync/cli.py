@@ -342,8 +342,8 @@ def api_credits(plot: bool):
             click.echo('No credit logs - perform a sync first')
 
         click.echo(
-            f'As of the last sync, you have {credits[0].org_remaining} credits remaining for'
-            f' the month ({credits[0].user_remaining} remaining this minute).'
+            f'As of the last sync, you have {credits[0].org_remaining}/{credits[0].org_limit} credits remaining for'
+            f' the month ({credits[0].user_remaining}/{credits[0].user_limit} remaining this minute).'
         )
 
     else:
