@@ -22,7 +22,7 @@ FieldType = affinity_types.Location | list[str] | float | str | None | datetime.
 
 def insert_entitlement_after(func):
     @functools.wraps(func)
-    def wrapper(self: 'Sync', *args, **kwargs):
+    def wrapper(self: 'Writer', *args, **kwargs):
         result = func(self, *args, **kwargs)
         self.insert_call_entitlement()
         return result
@@ -43,6 +43,7 @@ class Writer:
             db_password: str,
     ):
         self.__affinity_v1 = clients.AffinityClientV1(api_key=affinity_api_key)
+        self.__affinity_v2 = clients.AffinityClientV2(api_key=affinity_api_key)
         self.__reader = reader.Reader(
             db_host=db_host,
             db_port=db_port,
