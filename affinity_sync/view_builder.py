@@ -28,10 +28,11 @@ class ViewBuilder:
 
     def build_list(self, list_id: int):
         self.__logger.info(f'Building view for list {list_id}')
-        list_fields = self.__reader.get_list_fields(
+        all_list_fields = self.__reader.get_list_fields(
             only_live=True,
             qualifiers=[db_types.Qualification(field='list_affinity_id', value=list_id, type='equals')]
         )
+        list_fields = list({field.name: field for field in all_list_fields}.values())
         list_metadata = self.__reader.get_list_metadata(
             only_live=True,
             qualifiers=[db_types.Qualification(field='affinity_id', value=list_id, type='equals')]
@@ -132,8 +133,8 @@ class ViewBuilder:
 
     def build_people(self):
         self.__logger.info('Building person view')
-        person_fields = self.__reader.get_people_fields(only_live=True)
-
+        all_person_fields = self.__reader.get_people_fields(only_live=True)
+        person_fields = list({field.name: field for field in all_person_fields}.values())
         view = sql.SQL(
             '''
                 WITH expanded AS (
@@ -237,8 +238,8 @@ class ViewBuilder:
 
     def build_companies(self):
         self.__logger.info('Building company view')
-        company_fields = self.__reader.get_company_fields(only_live=True)
-        company_fields = list({field.name: field for field in company_fields}.values())
+        all_company_fields = self.__reader.get_company_fields(only_live=True)
+        company_fields = list({field.name: field for field in all_company_fields}.values())
 
         view = sql.SQL(
             '''
