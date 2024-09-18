@@ -432,3 +432,14 @@ class Writer:
                 list_id=list_id,
                 overwrite=overwrite
             )
+
+    @insert_entitlement_after
+    def add_file_to_company(self, company_id: int, file_name: str, file: bytes, file_type: str) -> None:
+        self.__logger.info(f'Adding file to company - {company_id} - {file_name}')
+        self.__affinity_v1.add_file_to_entity(
+            entity_id=company_id,
+            entity_type='company',
+            file_name=file_name,
+            file=file,
+            file_type=file_type
+        )

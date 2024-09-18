@@ -1,4 +1,3 @@
-import logging
 from typing import Literal
 
 import requests
@@ -147,7 +146,7 @@ class AffinityClientV1(affinity_base.AffinityBase):
         self._send_request(
             method='delete',
             url=self.__url(f'field-values/{field_value_id}'),
-            result_type=affinity_types.DeleteResponse
+            result_type=affinity_types.SuccessResponse
         )
 
     def find_company_by_id(self, company_id: int) -> affinity_types.Company | None:
@@ -323,4 +322,44 @@ class AffinityClientV1(affinity_base.AffinityBase):
             url=self.__url(f'lists/{list_id}/list-entries'),
             result_type=affinity_types.ListEntry,
             json={'entity_id': entity_id}
+        )
+
+    def fetch_all_entity_files(
+            self,
+            entity_id: int,
+            entity_type: Literal['person', 'company', 'opportunity']
+    ) -> list[affinity_types.EntityFile]:
+        self.__logger.debug(f'Fetching entity files - {entity_id} - {entity_type}')
+        return self._send_request(
+            method='get',
+            url=self.__url('entity-files'),
+            params={
+                'person_id': entity_id if entity_type == 'person' else None,
+                'organization_id': entity_id if entity_type == 'company' else None,
+                'opportunity_id': entity_id if entity_type == 'opportunity' else None
+            },
+            result_type=affinity_types.EntityFilesResponse
+        ).entity_files
+
+    def add_file_to_entity(
+            self,
+            entity_id: int,
+            entity_type: Literal['person', 'company', 'opportunity'],
+            file_name: str,
+            file: bytes,
+            file_type: str
+    ) -> affinity_types.SuccessResponse:
+        self.__logger.info(f'Adding file to {entity_type} - {entity_id} - {file_name}')
+        return self._send_request(
+            method='post',
+            url=self.__url('entity-files'),
+            params={
+                'person_id': entity_id if entity_type == 'person' else None,
+                'organization_id': entity_id if entity_type == 'company' else None,
+                'opportunity_id': entity_id if entity_type == 'opportunity' else None
+            },
+            files=[
+                ('file', (file_name, file, file_type))
+            ],
+            result_type=affinity_types.SuccessResponse
         )

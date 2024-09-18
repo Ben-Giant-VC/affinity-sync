@@ -1,5 +1,5 @@
 import logging
-from typing import Type, get_origin, TypeVar
+from typing import Type, get_origin, TypeVar, Any
 
 import backoff
 import requests
@@ -50,14 +50,20 @@ class AffinityBase:
             url: str,
             result_type: Type[T],
             params: dict | None = None,
-            json: dict | None = None
+            json: dict | None = None,
+            files: Any | None = None
     ) -> T:
+
+        if files and json:
+            raise ValueError('Cannot send both data and json in a request')
+
         self.__logger.debug(f'Sending {method.upper()} request to {url}')
         response = self.__session.request(
             method=method,
             url=url,
             params=params,
             json=json,
+            files=files,
             **({'auth': ('username', self.__api_key)} if 'v2' not in url else {})
         )
 

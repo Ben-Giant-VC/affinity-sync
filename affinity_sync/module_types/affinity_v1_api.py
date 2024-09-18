@@ -77,7 +77,7 @@ class FieldValue(base.Base):
     entity_type: int
 
 
-class DeleteResponse(base.Base):
+class SuccessResponse(base.Base):
     success: bool
 
 
@@ -174,3 +174,19 @@ class ListEntry(base.Base):
     created_at: datetime.datetime
     entity_type: int | None = None
     entity: Person | Company | Opportunity
+
+
+class EntityFile(base.Base, extra='ignore'):
+    id: int
+    name: str
+    size: int
+    person_id: int | None
+    organization_id: int | None
+    opportunity_id: int | None
+    uploader_id: int
+    created_at: datetime.datetime
+
+
+class EntityFilesResponse(base.Base):
+    entity_files: list[EntityFile]
+    next_page_token: str | None
