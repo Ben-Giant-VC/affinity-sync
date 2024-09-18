@@ -434,8 +434,14 @@ class Writer:
             )
 
     @insert_entitlement_after
-    def add_file_to_company(self, company_id: int, file_name: str, file: bytes, file_type: str) -> None:
+    def add_file_to_company_if_not_exists(self, company_id: int, file_name: str, file: bytes, file_type: str) -> None:
         self.__logger.info(f'Adding file to company - {company_id} - {file_name}')
+        existing_files = self.__affinity_v1.fetch_all_entity_files(entity_id=company_id, entity_type='company')
+
+        if file_name in [file.name for file in existing_files]:
+            self.__logger.info('File already exists - will not add again')
+            return
+
         self.__affinity_v1.add_file_to_entity(
             entity_id=company_id,
             entity_type='company',
