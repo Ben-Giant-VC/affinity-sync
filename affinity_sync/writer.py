@@ -263,6 +263,15 @@ class Writer:
         )
 
     @insert_entitlement_after
+    def create_list_entry(
+            self,
+            entity_id: int,
+            list_id: int,
+    ) -> affinity_types.ListEntry:
+        self.__logger.info(f'Creating list entry - {entity_id} - {list_id}')
+        return self.__affinity_v1.create_list_entry(entity_id=entity_id, list_id=list_id)
+
+    @insert_entitlement_after
     def find_or_create_list_entry(
             self,
             entity_id: int,
