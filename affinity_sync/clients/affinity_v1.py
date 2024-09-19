@@ -1,3 +1,4 @@
+import logging
 from typing import Literal
 
 import requests
