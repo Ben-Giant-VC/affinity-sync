@@ -359,6 +359,7 @@ class Writer:
         self.__check_field_value_type(value=field_value, value_type=field.value_type)
 
         current_values = [value for value in current_values if value.field_id == v1_field.id]
+        current_raw_values = [value.value for value in current_values]
 
         if current_values and not overwrite:
             self.__logger.info('Field already exists - will not overwrite')
@@ -376,10 +377,18 @@ class Writer:
             field_value = [value.replace(tzinfo=None).strftime('%Y-%m-%dT%H:%M:%S') for value in field_value]
 
         if isinstance(next(iter(field_value), None), datetime.datetime):
-            field_value = [value.value.replace(tzinfo=None).strftime('%Y-%m-%dT%H:%M:%S') for value in current_values]
+            current_raw_values = [
+                value.value.replace(tzinfo=None).strftime('%Y-%m-%dT%H:%M:%S')
+                for value in current_values
+            ]
 
-        values_to_remove = [value for value in current_values if value.value not in field_value]
-        values_to_add = [value for value in field_value if value not in [value.value for value in current_values]]
+        values_to_remove = [
+            value for value in current_values
+            if (
+                   value.value.replace(tzinfo=None).strftime('%Y-%m-%dT%H:%M:%S')
+                   if isinstance(value.value, datetime.datetime) else value.value
+               ) not in field_value]
+        values_to_add = [value for value in field_value if value not in current_raw_values]
 
         if not values_to_remove and not values_to_add:
             self.__logger.info('No changes required')
