@@ -31,7 +31,7 @@ def insert_entitlement_after(func):
 
 
 class Writer:
-    __logger = logging.getLogger('Writer')
+    __logger = logging.getLogger('affinity_sync.Writer')
 
     def __init__(
             self,

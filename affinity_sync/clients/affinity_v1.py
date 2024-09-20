@@ -11,7 +11,7 @@ class AffinityClientV1(affinity_base.AffinityBase):
     __URL = 'https://api.affinity.co/'
 
     def __init__(self, api_key: str):
-        self.__logger = logging.getLogger('AffinityClientV1')
+        self.__logger = logging.getLogger('affinity_sync.AffinityClientV1')
         super().__init__(api_key)
 
     def __url(self, path: str) -> str:

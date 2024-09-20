@@ -9,7 +9,7 @@ class AffinityClientV2(affinity_base.AffinityBase):
     __URL = 'https://api.affinity.co/v2/'
 
     def __init__(self, api_key: str):
-        self.__logger = logging.getLogger('AffinityClientV2')
+        self.__logger = logging.getLogger('affinity_sync.AffinityClientV2')
         super().__init__(api_key)
 
     def __url(self, path: str) -> str:

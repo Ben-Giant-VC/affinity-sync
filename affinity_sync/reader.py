@@ -15,7 +15,7 @@ class Reader:
             db_user: str,
             db_password: str,
     ):
-        self.__logger = logging.getLogger('Reader')
+        self.__logger = logging.getLogger('affinity_sync.Reader')
         self.__postgres_client = clients.PostgresClient(
             host=db_host,
             port=db_port,

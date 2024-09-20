@@ -59,7 +59,7 @@ class PostgresClient:
         self.__password = password
         self.__dbname = dbname
 
-        self.__logger = logging.getLogger('PostgresClient')
+        self.__logger = logging.getLogger('affinity_sync.PostgresClient')
         self.__assert_schema_exists()
 
     def connection(self) -> psycopg.Connection:

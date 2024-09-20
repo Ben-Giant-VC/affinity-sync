@@ -8,7 +8,7 @@ from .module_types import db_types
 
 
 class ViewBuilder:
-    __logger = logging.getLogger('ListViewBuilder')
+    __logger = logging.getLogger('affinity_sync.ListViewBuilder')
 
     def __init__(self, db_host: str, db_port: int, db_name: str, db_user: str, db_password: str):
         self.__reader = reader.Reader(

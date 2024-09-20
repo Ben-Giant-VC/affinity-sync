@@ -44,7 +44,7 @@ class Sync:
             db_user=db_user,
             db_password=db_password
         )
-        self.__logger = logging.getLogger('Sync')
+        self.__logger = logging.getLogger('affinity_sync.Sync')
 
     def __sync(
             self,

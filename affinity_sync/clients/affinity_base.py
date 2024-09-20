@@ -19,7 +19,7 @@ class AffinityBase:
     def __init__(self, api_key: str):
         self.__session = requests.Session()
         self.__session.headers.update({'Authorization': f'Bearer {api_key}'})
-        self.__logger = logging.getLogger('AffinityBaseClient')
+        self.__logger = logging.getLogger('affinity_sync.AffinityBaseClient')
         self.__api_key = api_key
         self.api_call_entitlement: affinity_types.ApiCallEntitlement | None = None
 
