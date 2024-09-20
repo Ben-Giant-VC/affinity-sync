@@ -1,5 +1,4 @@
 import datetime
-from typing import Any
 
 import pydantic
 
@@ -72,7 +71,7 @@ class FieldValue(base.Base):
     entity_id: int
     created_at: datetime.datetime
     updated_at: datetime.datetime | None
-    value: Any
+    value: int | float | datetime.datetime | str
     value_type: int
     entity_type: int
 

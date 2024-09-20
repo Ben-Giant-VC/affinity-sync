@@ -375,6 +375,9 @@ class Writer:
         if isinstance(next(iter(field_value), None), datetime.datetime):
             field_value = [value.strftime('%Y-%m-%dT%H:%M:%S') for value in field_value]
 
+        if isinstance(next(iter(field_value), None), datetime.datetime):
+            field_value = [value.value.strftime('%Y-%m-%dT%H:%M:%S') for value in current_values]
+
         values_to_remove = [value for value in current_values if value.value not in field_value]
         values_to_add = [value for value in field_value if value not in [value.value for value in current_values]]
 
