@@ -354,7 +354,7 @@ class Writer:
             overwrite: bool,
             list_id: int | None,
     ) -> None:
-        self.__logger.info(f'Updating field - {field_name} - {field_value}')
+        self.__logger.debug(f'Updating field - {field_name} - {field_value}')
         field, v1_field = self.__get_field(field_name=field_name, list_id=list_id)
         self.__check_field_value_type(value=field_value, value_type=field.value_type)
 
@@ -405,6 +405,7 @@ class Writer:
             list_id: int | None = None,
             overwrite: bool = True
     ) -> None:
+        self.__logger.info(f'Updating fields - {len(fields)}')
 
         if entity_type == 'opportunity' and list_entry_id is None:
             raise CannotDetermineCorrectEntityError('List entry id is required for opportunities')
