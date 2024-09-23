@@ -153,6 +153,15 @@ def ls(live: bool, list: bool, view: bool, people: bool, companies: bool, due: b
         password=config['postgres-password'],
         dbname=config['postgres-database']
     )
+    sync_import.Sync(
+        affinity_api_key=config['affinity-api-key'],
+        db_host=config['postgres-host'],
+        db_port=config['postgres-port'],
+        db_user=config['postgres-user'],
+        db_password=config['postgres-password'],
+        db_name=config['postgres-database']
+    ).set_up_syncs()
+
     # Fetch all valid syncs
     syncs = client.fetch_syncs() if not due else client.fetch_due_syncs()
 

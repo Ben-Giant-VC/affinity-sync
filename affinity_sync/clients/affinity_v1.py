@@ -294,13 +294,18 @@ class AffinityClientV1(affinity_base.AffinityBase):
     def update_opportunity(
             self,
             opportunity_id: int,
-            new_opportunity: affinity_types.NewOpportunity
+            name: str | None = None,
+            person_ids: list[int] | None = None,
+            organization_ids: list[int] | None = None
     ) -> affinity_types.Opportunity:
         self.__logger.info(f'Updating opportunity - {opportunity_id}')
+        name_field = {'name': name} if name else {}
+        person_ids_field = {'person_ids': person_ids} if person_ids else {}
+        organization_ids_field = {'organization_ids': organization_ids} if organization_ids else {}
         return self._send_request(
             method='put',
             url=self.__url(f'opportunities/{opportunity_id}'),
-            json=new_opportunity.model_dump(),
+            json=name_field | person_ids_field | organization_ids_field,
             result_type=affinity_types.Opportunity
         )
 

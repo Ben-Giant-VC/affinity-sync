@@ -172,7 +172,7 @@ class ListEntry(base.Base):
     entity_id: int
     created_at: datetime.datetime
     entity_type: int | None = None
-    entity: Person | Company | Opportunity
+    entity: Opportunity | Person | Company
 
 
 class EntityFile(base.Base, extra='ignore'):

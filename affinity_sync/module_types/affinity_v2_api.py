@@ -165,3 +165,10 @@ class Person(base.Base):
     )
     type: str
     fields: list[Field] = pydantic.Field(default_factory=list)
+
+    def get_field(self, field_name: str) -> Field | None:
+        for field in self.fields:
+            if field.name == field_name:
+                return field
+
+        return None
