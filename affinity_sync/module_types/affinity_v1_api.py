@@ -71,7 +71,7 @@ class FieldValue(base.Base):
     entity_id: int
     created_at: datetime.datetime
     updated_at: datetime.datetime | None
-    value: int | float | datetime.datetime | str | dict
+    value: int | float | datetime.datetime | str | dict | None
     value_type: int
     entity_type: int
 
