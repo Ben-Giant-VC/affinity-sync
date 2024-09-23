@@ -89,20 +89,20 @@ class Location(base.Base):
 
 FieldTypeMap = {
     'person': int,
-    'person-multi': list[int],
+    'person-multi': list,
     'company': int,
-    'company-multi': list[int],
+    'company-multi': list,
     'filterable-text': str,
-    'filterable-text-multi': list[str],
+    'filterable-text-multi': list,
     'number': float,
-    'number-multi': list[float],
+    'number-multi': list,
     'datetime': datetime.datetime,
     'location': Location,
-    'location-multi': list[Location],
+    'location-multi': list,
     'text': str,
     'ranked-dropdown': str,
     'dropdown': str,
-    'dropdown-multi': list[str],
+    'dropdown-multi': list,
 }
 
 
