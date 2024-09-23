@@ -75,11 +75,20 @@ class Writer:
         out = {}
 
         for field in list(self.__affinity_v2.get_people_fields()) + list(self.__affinity_v2.get_company_fields()):
-            if field.type not in ['global', 'list']:
+            is_custom = field.type in ['global', 'list']
+            is_entriched = field.type == 'enriched'
+
+            if not is_custom and not is_entriched:
                 continue
 
-            v1_id = int(field.affinity_id.split('-')[1])
+            v1_id = int(field.affinity_id.split('-')[1]) if is_custom else field.affinity_id
             v1_field = v1_fields.get(v1_id)
+
+            if v1_field is None:
+                for k, v in v1_fields.items():
+                    if v.name == field.name:
+                        v1_field = v
+                        break
 
             out[field.name.upper()] = (field, v1_field)
 
@@ -250,8 +259,12 @@ class Writer:
         self.__logger.info(f'Finding or creating opportunity - {name}')
         opportunity = self.__affinity_v1.find_opportunity_by_name(name=name, list_id=list_id)
 
+        self.__logger.info(f'Opportunity found by name - {name} - {opportunity}')
+
         if opportunity:
             return opportunity
+
+        self.__logger.info(f'Creating opportunity - {name} - {list_id} - {company_ids} - {person_ids}')
 
         return self.__affinity_v1.create_opportunity(
             new_opportunity=affinity_types.NewOpportunity(
