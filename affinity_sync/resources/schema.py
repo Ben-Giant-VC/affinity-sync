@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS affinity.sync
 CREATE TABLE IF NOT EXISTS affinity.sync_log
 (
     id         SERIAL PRIMARY KEY,
-    sync_id    INT REFERENCES affinity.sync (id) NOT NULL,
+    sync_id    INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 

@@ -198,7 +198,7 @@ class PostgresClient:
                     SELECT
                         {columns}
                     FROM to_insert
-                    WHERE to_insert.affinity_id NOT IN (SELECT affinity_id FROM existing)
+                    WHERE to_insert.affinity_id NOT IN (SELECT "existing_affinity_id" FROM existing)
                     RETURNING id
                 ),
                 insert_existing AS (
