@@ -352,10 +352,17 @@ class Writer:
     def update_opportunity(
             self,
             opportunity_id: int,
-            new_opportunity: affinity_types.NewOpportunity
+            name: str,
+            person_ids: list[int],
+            organization_ids: list[int],
     ) -> affinity_types.Opportunity:
         self.__logger.info(f'Updating opportunity - {opportunity_id}')
-        return self.__affinity_v1.update_opportunity(opportunity_id=opportunity_id, new_opportunity=new_opportunity)
+        return self.__affinity_v1.update_opportunity(
+            opportunity_id=opportunity_id,
+            name=name,
+            person_ids=person_ids,
+            organization_ids=organization_ids,
+        )
 
     def __update_field(
             self,
