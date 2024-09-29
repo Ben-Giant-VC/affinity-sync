@@ -285,13 +285,13 @@ class Writer:
         return self.__affinity_v1.create_list_entry(entity_id=entity_id, list_id=list_id)
 
     @insert_entitlement_after
-    def find_or_create_list_entry(
+    def find_list_entry(
             self,
             entity_id: int,
             entity_type: Literal['person', 'company', 'opportunity'],
             list_id: int,
             qualifiers: dict[str, str] | None = None
-    ) -> affinity_types.ListEntry:
+    ) -> affinity_types.ListEntry | None:
         self.__logger.info(f'Finding or creating list entry - {entity_id} - {list_id}')
         entries = self.__affinity_v1.fetch_all_list_entries(list_id=list_id)
         mathing_entries = [entry for entry in entries if entry.entity_id == entity_id]
@@ -336,6 +336,26 @@ class Writer:
         if mathing_entries:
             return mathing_entries[0]
 
+        return None
+
+    @insert_entitlement_after
+    def find_or_create_list_entry(
+            self,
+            entity_id: int,
+            entity_type: Literal['person', 'company', 'opportunity'],
+            list_id: int,
+            qualifiers: dict[str, str] | None = None
+    ) -> affinity_types.ListEntry:
+        current_entry = self.find_list_entry(
+            entity_id=entity_id,
+            entity_type=entity_type,
+            list_id=list_id,
+            qualifiers=qualifiers
+        )
+
+        if current_entry:
+            return current_entry
+
         return self.__affinity_v1.create_list_entry(entity_id=entity_id, list_id=list_id)
 
     @insert_entitlement_after
@@ -364,6 +384,29 @@ class Writer:
             organization_ids=organization_ids,
         )
 
+    def current_field_values(
+            self,
+            field_names: list[str],
+            entity_id: int,
+            entity_type: Literal['person', 'company', 'opportunity'],
+            list_entry_id: int | None = None,
+            list_id: int | None = None
+    ) -> dict[str, list[affinity_types.FieldValue]]:
+        field_names = [field_name.upper() for field_name in field_names]
+        current_values = self.__affinity_v1.fetch_field_values(
+            entity_id=entity_id,
+            entity_type=entity_type,
+            list_entry_id=list_entry_id
+        )
+
+        out = {}
+
+        for name in field_names:
+            field, v1_field = self.__get_field(field_name=name, list_id=list_id)
+            out[name] = [value for value in current_values if value.field_id == v1_field.id]
+
+        return out
+
     def __update_field(
             self,
             entity_id: int,
@@ -373,12 +416,24 @@ class Writer:
             current_values: list[affinity_types.FieldValue],
             overwrite: bool,
             list_id: int | None,
+            status_field: affinity_types.Field | None = None
     ) -> None:
         self.__logger.debug(f'Updating field - {field_name} - {field_value}')
         field, v1_field = self.__get_field(field_name=field_name, list_id=list_id)
         self.__check_field_value_type(value=field_value, value_type=field.value_type)
 
+        if field_name.upper() == 'STATUS':
+            self.__logger.info(f'Updating status field - {field_value}')
+            options = status_field.dropdown_options
+            correct_option = next((option for option in options if option.text.upper() == field_value.upper()), None)
+
+            if not correct_option:
+                raise ValueError(f'Invalid status value - {field_value}')
+
+            field_value = correct_option.id
+
         current_values = [value for value in current_values if value.field_id == v1_field.id]
+        print(current_values)
         current_raw_values = [value.value for value in current_values]
 
         if current_values and not overwrite:
@@ -450,6 +505,17 @@ class Writer:
             list_entry_id=list_entry_id,
         )
 
+        status_field = None
+
+        if any(field_name.upper() == 'STATUS' for field_name in fields.keys()):
+            options = self.__affinity_v1.fetch_fields()
+            status_field = next((
+                field for field in options
+                if field.name == 'Status' and list_id == field.list_id
+            ),
+                None
+            )
+
         for field_name, field_value in fields.items():
             self.__update_field(
                 entity_id=entity_id,
@@ -458,7 +524,8 @@ class Writer:
                 current_values=current_values,
                 list_entry_id=list_entry_id,
                 list_id=list_id,
-                overwrite=overwrite
+                overwrite=overwrite,
+                status_field=status_field
             )
 
     @insert_entitlement_after
