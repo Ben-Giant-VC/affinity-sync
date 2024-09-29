@@ -292,7 +292,7 @@ class Writer:
             list_id: int,
             qualifiers: dict[str, str] | None = None
     ) -> affinity_types.ListEntry | None:
-        self.__logger.info(f'Finding or creating list entry - {entity_id} - {list_id}')
+        self.__logger.info(f'Finding list entry - {entity_id} - {list_id}')
         entries = self.__affinity_v1.fetch_all_list_entries(list_id=list_id)
         mathing_entries = [entry for entry in entries if entry.entity_id == entity_id]
 
@@ -422,7 +422,7 @@ class Writer:
         field, v1_field = self.__get_field(field_name=field_name, list_id=list_id)
         self.__check_field_value_type(value=field_value, value_type=field.value_type)
 
-        if field_name.upper() == 'STATUS':
+        if field_name.upper() == 'STATUS' and status_field:
             self.__logger.info(f'Updating status field - {field_value}')
             options = status_field.dropdown_options
             correct_option = next((option for option in options if option.text.upper() == field_value.upper()), None)
@@ -433,7 +433,6 @@ class Writer:
             field_value = correct_option.id
 
         current_values = [value for value in current_values if value.field_id == v1_field.id]
-        print(current_values)
         current_raw_values = [value.value for value in current_values]
 
         if current_values and not overwrite:
@@ -511,10 +510,8 @@ class Writer:
             options = self.__affinity_v1.fetch_fields()
             status_field = next((
                 field for field in options
-                if field.name == 'Status' and list_id == field.list_id
-            ),
-                None
-            )
+                if field.name.upper() == 'STATUS' and list_id == field.list_id
+            ), None)
 
         for field_name, field_value in fields.items():
             self.__update_field(
