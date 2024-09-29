@@ -81,10 +81,10 @@ class SuccessResponse(base.Base):
 
 
 class Location(base.Base):
-    street_address: str
-    city: str
-    state: str
-    country: str
+    street_address: str | None
+    city: str | None
+    state: str | None
+    country: str | None
 
 
 FieldTypeMap = {
