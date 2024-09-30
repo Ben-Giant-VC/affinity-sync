@@ -369,3 +369,25 @@ class AffinityClientV1(affinity_base.AffinityBase):
             ],
             result_type=affinity_types.SuccessResponse
         )
+
+    def add_note_to_entity(
+            self,
+            entity_id: int,
+            entity_type: Literal['person', 'company', 'opportunity'],
+            creator_id: int,
+            note: str
+    ) -> affinity_types.Note:
+        self.__logger.info(f'Adding note to {entity_type} - {entity_id}')
+        return self._send_request(
+            method='post',
+            url=self.__url('notes'),
+            json={
+                'content': note,
+                'person_ids': [entity_id] if entity_type == 'person' else None,
+                'organization_ids': [entity_id] if entity_type == 'company' else None,
+                'opportunity_ids': [entity_id] if entity_type == 'opportunity' else None,
+                'creator_id': creator_id,
+                'type': 0
+            },
+            result_type=affinity_types.Note
+        )

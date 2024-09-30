@@ -541,3 +541,19 @@ class Writer:
             file=file,
             file_type=file_type
         )
+
+    @insert_entitlement_after
+    def add_note_to_entity(
+            self,
+            entity_id: int,
+            entity_type: Literal['person', 'company', 'opportunity'],
+            note: str,
+            creator_id: int
+    ) -> affinity_types.Note:
+        self.__logger.info(f'Adding note to entity - {entity_id} - {entity_type}')
+        return self.__affinity_v1.add_note_to_entity(
+            entity_id=entity_id,
+            entity_type=entity_type,
+            note=note,
+            creator_id=creator_id
+        )

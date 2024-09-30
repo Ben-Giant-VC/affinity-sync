@@ -189,3 +189,22 @@ class EntityFile(base.Base, extra='ignore'):
 class EntityFilesResponse(base.Base):
     entity_files: list[EntityFile]
     next_page_token: str | None
+
+
+class Note(base.Base):
+    id: int
+    creator_id: int
+    person_ids: list[int]
+    associated_person_ids: list[int]
+    interaction_person_ids: list[int]
+    interaction_id: int | None
+    interaction_type: str | None
+    is_meeting: bool
+    mentioned_person_ids: list[int]
+    organization_ids: list[int]
+    opportunity_ids: list[int]
+    parent_id: int | None
+    content: str
+    type: int
+    created_at: datetime.datetime
+    updated_at: datetime.datetime | None
