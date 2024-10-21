@@ -132,8 +132,6 @@ class Writer:
         if not field:
             raise FieldNotFoundError(f'Field not found - {field_name}')
 
-        print(field)
-
         return field
 
     @staticmethod
@@ -475,7 +473,7 @@ class Writer:
                 field_id=v1_field.id,
                 entity_id=entity_id,
                 value=value.model_dump() if isinstance(value, affinity_types.Location) else value,
-                list_entry_id=v1_field.list_id
+                list_entry_id=list_entry_id if v1_field.list_id else None
             )
 
     @insert_entitlement_after
