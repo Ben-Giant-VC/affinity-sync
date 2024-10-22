@@ -454,7 +454,7 @@ class Writer:
             field_value = [value.replace(tzinfo=None).strftime('%Y-%m-%dT%H:%M:%S') for value in field_value]
 
         values_to_remove = {
-            value for value in current_values
+            value.id for value in current_values
             if (value.value.split('.')[0] if is_date_field else value.value) not in field_value
         }
         values_to_add = [value for value in field_value if value not in current_raw_values]
@@ -463,9 +463,9 @@ class Writer:
             self.__logger.info('No changes required')
             return
 
-        for value in values_to_remove:
-            self.__logger.info(f'Removing field value - {value.value}')
-            self.__affinity_v1.delete_field_value(field_value_id=value.id)
+        for value_id in values_to_remove:
+            self.__logger.info(f'Removing field value - {value_id}')
+            self.__affinity_v1.delete_field_value(field_value_id=value_id)
 
         for value in values_to_add:
             self.__logger.info(f'Adding field value - {value}')
