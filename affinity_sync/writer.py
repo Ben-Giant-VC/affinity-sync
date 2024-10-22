@@ -453,10 +453,10 @@ class Writer:
             current_raw_values = [value.value.split('.')[0] for value in current_values]
             field_value = [value.replace(tzinfo=None).strftime('%Y-%m-%dT%H:%M:%S') for value in field_value]
 
-        values_to_remove = [
+        values_to_remove = {
             value for value in current_values
             if (value.value.split('.')[0] if is_date_field else value.value) not in field_value
-        ]
+        }
         values_to_add = [value for value in field_value if value not in current_raw_values]
 
         if not values_to_remove and not values_to_add:

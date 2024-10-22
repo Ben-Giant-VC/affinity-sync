@@ -64,7 +64,7 @@ class Field(base.Base):
     dropdown_options: list[DropDownOption]
 
 
-class FieldValue(base.Base):
+class FieldValue(base.Base, frozen=True):
     id: int
     field_id: int
     list_entry_id: int | None
