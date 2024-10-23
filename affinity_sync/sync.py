@@ -55,8 +55,9 @@ class Sync:
         all_ids = []
 
         for chunk in itertools.batched(generator, 100):
-            self.__postgres_client.insert_as_of_relations(table_name, chunk)
-            all_ids.extend([item.affinity_id for item in chunk])
+            duplicates_removed = list({item.affinity_id: item for item in chunk}.values())
+            self.__postgres_client.insert_as_of_relations(table_name, duplicates_removed)
+            all_ids.extend([item.affinity_id for item in duplicates_removed])
 
         self.__postgres_client.set_dead_as_of_relations(
             table=table_name,
