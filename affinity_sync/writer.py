@@ -152,7 +152,8 @@ class Writer:
             emails: list[str],
             organization_ids: list[int] | None = None,
             cached_field_name: str | None = None,
-            cached_filed_value: Any | None = None
+            cached_filed_value: Any | None = None,
+            take_best_match: bool = False
     ) -> affinity_types.Person:
         self.__logger.info(f'Finding or creating person - {first_name} {last_name}')
 
@@ -182,7 +183,11 @@ class Writer:
         if person:
             return person
 
-        person = self.__affinity_v1.find_person_by_name(first_name=first_name, last_name=last_name)
+        person = self.__affinity_v1.find_person_by_name(
+            first_name=first_name,
+            last_name=last_name,
+            take_best_match=take_best_match
+        )
 
         if person:
             return person

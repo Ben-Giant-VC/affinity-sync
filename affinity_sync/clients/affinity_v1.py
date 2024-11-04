@@ -62,7 +62,12 @@ class AffinityClientV1(affinity_base.AffinityBase):
 
         return None
 
-    def find_person_by_name(self, first_name: str, last_name: str) -> affinity_types.Person | None:
+    def find_person_by_name(
+            self,
+            first_name: str,
+            last_name: str,
+            take_best_match: bool = False
+    ) -> affinity_types.Person | None:
         self.__logger.debug(f'Finding person by name - {first_name} {last_name}')
         response = self._send_request(
             method='get',
@@ -79,6 +84,9 @@ class AffinityClientV1(affinity_base.AffinityBase):
 
         if len(valid_persons) == 1:
             return response.persons[0]
+
+        if len(valid_persons) > 1 and take_best_match:
+            return valid_persons[0]
 
         if len(valid_persons) > 1:
             raise affinity_types.MultipleResults(f'Multiple results found for {first_name} {last_name}')
