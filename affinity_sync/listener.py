@@ -72,6 +72,7 @@ class WebhookListener:
 
             if time_since_last_event % 20 == 0:
                 self.__logger.info('No events received in the last 20s')
+                time_since_last_event = 0
 
         payload = self.__queue.pop(0)
 
