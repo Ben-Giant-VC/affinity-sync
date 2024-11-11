@@ -343,6 +343,7 @@ ReminderWebhookEventType = Literal[
 ]
 
 WebhookEventType = Union[
+    SampleWebhookType,
     ListWebhookEventType,
     ListEntryWebhookEventType,
     NoteWebhookEventType,
