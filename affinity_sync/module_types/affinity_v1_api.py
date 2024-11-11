@@ -1,4 +1,6 @@
+import abc
 import datetime
+from typing import Literal, Union
 
 import pydantic
 
@@ -174,6 +176,20 @@ class ListEntry(base.Base):
     entity_type: int | None = None
     entity: Opportunity | Person | Company
 
+    @property
+    def entity_type_name(self) -> Literal['person', 'company', 'opportunity']:
+
+        if isinstance(self.entity, Person):
+            return 'person'
+
+        if isinstance(self.entity, Company):
+            return 'company'
+
+        if isinstance(self.entity, Opportunity):
+            return 'opportunity'
+
+        raise ValueError(f'Unknown entity type: {self.entity}')
+
 
 class EntityFile(base.Base, extra='ignore'):
     id: int
@@ -208,3 +224,156 @@ class Note(base.Base):
     type: int
     created_at: datetime.datetime
     updated_at: datetime.datetime | None
+
+
+class PaginatedResponse(base.Base, abc.ABC):
+    next_page_token: str | None
+
+    @abc.abstractmethod
+    def get_results(self) -> list[base.Base]:
+        pass
+
+
+class UnknownEmail(base.Base):
+    email: str
+
+
+class EmailInteraction(base.Base):
+    id: int
+    date: datetime.datetime
+    subject: str | None
+    type: int
+    from_: Person | UnknownEmail = pydantic.Field(alias='from')
+    to: list[Person]
+    cc: list[Person]
+    direction: int
+
+
+class EmailInteractionQueryResponse(PaginatedResponse):
+    emails: list[EmailInteraction]
+    next_page_token: str | None
+
+    def get_results(self) -> list[EmailInteraction]:
+        return self.emails
+
+
+class CallOrMeetingInteraction(base.Base):
+    id: int
+    date: datetime.datetime
+    attendees: list[str]
+    start_time: datetime.datetime
+    end_time: datetime.datetime | None
+    updated_at: datetime.datetime | None
+    manual_creator_id: int | None
+    title: str | None
+    type: int
+    notes: list[int]
+    persons: list[Person]
+
+
+class CallOrMeetingInteractionQueryResponse(PaginatedResponse):
+    events: list[CallOrMeetingInteraction]
+    next_page_token: str | None
+
+    def get_results(self) -> list[CallOrMeetingInteraction]:
+        return self.events
+
+
+SampleWebhookType = Literal[
+    'sample.webhook'
+]
+
+ListWebhookEventType = Literal[
+    'list.created',
+    'list.updated',
+    'list.deleted'
+]
+
+ListEntryWebhookEventType = Literal[
+    'list_entry.created',
+    'list_entry.deleted'
+]
+
+NoteWebhookEventType = Literal[
+    'note.created',
+    'note.updated',
+    'note.deleted'
+]
+
+FieldWebhookEventType = Literal[
+    'field.created',
+    'field.updated',
+    'field.deleted'
+]
+
+FieldValueWebhookEventType = Literal[
+    'field_value.created',
+    'field_value.updated',
+    'field_value.deleted'
+]
+
+PersonWebhookEventType = Literal[
+    'person.created',
+    'person.updated',
+    'person.deleted'
+]
+
+OrganizationWebhookEventType = Literal[
+    'organization.created',
+    'organization.updated',
+    'organization.deleted',
+    'organization.merged'
+]
+
+OpportunityWebhookEventType = Literal[
+    'opportunity.created',
+    'opportunity.updated',
+    'opportunity.deleted'
+]
+
+EntityFileWebhookEventType = Literal[
+    'file.created',
+    'file.deleted'
+]
+
+ReminderWebhookEventType = Literal[
+    'reminder.created',
+    'reminder.updated',
+    'reminder.deleted'
+]
+
+WebhookEventType = Union[
+    ListWebhookEventType,
+    ListEntryWebhookEventType,
+    NoteWebhookEventType,
+    FieldWebhookEventType,
+    FieldValueWebhookEventType,
+    PersonWebhookEventType,
+    OrganizationWebhookEventType,
+    OpportunityWebhookEventType,
+    EntityFileWebhookEventType,
+    ReminderWebhookEventType
+]
+
+
+class Webhook(base.Base):
+    id: int
+    webhook_url: str
+    subscriptions: list[WebhookEventType]
+    created_by: int
+    updated_at: datetime.datetime | None
+    disabled: bool
+
+
+class SampleWebhookBody(base.Base):
+    test: bool
+
+
+class WebhookEvent(base.Base):
+    type: WebhookEventType
+    body: Union[
+        SampleWebhookBody,
+        Person,
+        ListEntry
+    ]
+    sent_at: int

@@ -1,5 +1,6 @@
+import datetime
 import logging
-from typing import Literal
+from typing import Literal, Union
 
 import requests
 
@@ -398,4 +399,130 @@ class AffinityClientV1(affinity_base.AffinityBase):
                 'type': 0
             },
             result_type=affinity_types.Note
+        )
+
+    def __fetch_interactions_page(
+            self,
+            interaction_type: Literal['meeting', 'call', 'chat message', 'email'],
+            entity_type: Literal['person', 'company', 'opportunity'],
+            entity_id: int,
+            start_date: datetime.date,
+            end_date: datetime.date,
+            next_page_token: str | None
+    ) -> affinity_types.EmailInteractionQueryResponse | affinity_types.CallOrMeetingInteractionQueryResponse:
+        self.__logger.debug('Doing fetch interactions pagination call')
+        print('Doing fetch interactions pagination call')
+
+        interaction_number = {
+            'meeting': 0,
+            'call': 1,
+            'chat message': 2,
+            'email': 3
+        }[interaction_type]
+
+        return self._send_request(
+            method='get',
+            url=self.__url('interactions'),
+            params={
+                'type': interaction_number,
+                'person_id': entity_id if entity_type == 'person' else None,
+                'organization_id': entity_id if entity_type == 'company' else None,
+                'opportunity_id': entity_id if entity_type == 'opportunity' else None,
+                'start_time': datetime.datetime.combine(start_date, datetime.datetime.min.time()).isoformat(),
+                'end_time': datetime.datetime.combine(end_date, datetime.datetime.min.time()).isoformat(),
+                'page_token': next_page_token
+            },
+            result_type=Union[
+                affinity_types.EmailInteractionQueryResponse,
+                affinity_types.CallOrMeetingInteractionQueryResponse,
+
+            ]
+        )
+
+    def fetch_all_interactions_in_period(
+            self,
+            interaction_type: Literal['meeting', 'call', 'chat message', 'email'],
+            entity_type: Literal['person', 'company', 'opportunity'],
+            entity_id: int,
+            start_date: datetime.date,
+            end_date: datetime.date
+    ) -> list[affinity_types.EmailInteraction] | list[affinity_types.CallOrMeetingInteraction]:
+        self.__logger.debug('Fetching interactions')
+        response = self.__fetch_interactions_page(
+            interaction_type=interaction_type,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            start_date=start_date,
+            end_date=end_date,
+            next_page_token=None
+        )
+
+        interactions = response.get_results()
+
+        while response.next_page_token:
+            response = self.__fetch_interactions_page(
+                interaction_type=interaction_type,
+                entity_type=entity_type,
+                entity_id=entity_id,
+                start_date=start_date,
+                end_date=end_date,
+                next_page_token=response.next_page_token
+            )
+
+            interactions.extend(response.get_results())
+
+        return interactions
+
+    def fetch_all_interactions(
+            self,
+            interaction_type: Literal['meeting', 'call', 'chat message', 'email'],
+            entity_type: Literal['person', 'company', 'opportunity'],
+            entity_id: int,
+            start_date: datetime.date = datetime.date(2021, 1, 1),
+    ) -> list[affinity_types.EmailInteraction] | list[affinity_types.CallOrMeetingInteraction]:
+        self.__logger.debug(f'Fetching interactions from {start_date}')
+        start_date = start_date
+        end_date = min(start_date + datetime.timedelta(days=364), datetime.date.today())
+        interactions = []
+
+        while start_date < datetime.date.today():
+            interactions.extend(self.fetch_all_interactions_in_period(
+                interaction_type=interaction_type,
+                entity_type=entity_type,
+                entity_id=entity_id,
+                start_date=start_date,
+                end_date=end_date
+            ))
+
+            start_date = end_date + datetime.timedelta(days=1)
+            end_date = min(start_date + datetime.timedelta(days=364), datetime.date.today())
+
+        return interactions
+
+    def get_all_webhooks(self) -> list[affinity_types.Webhook]:
+        self.__logger.debug('Fetching all webhooks')
+        return self._send_request(
+            method='get',
+            url=self.__url('webhook'),
+            result_type=list[affinity_types.Webhook]
+        )
+
+    def delete_webhook(self, webhook_id: int) -> None:
+        self.__logger.info(f'Deleting webhook - {webhook_id}')
+        self._send_request(
+            method='delete',
+            url=self.__url(f'webhook/{webhook_id}'),
+            result_type=affinity_types.SuccessResponse
+        )
+
+    def create_webhook(self, url: str, events: list[affinity_types.WebhookEventType]):
+        self.__logger.info(f'Creating webhook - {url}, {events}')
+        return self._send_request(
+            method='post',
+            url=self.__url('webhook/subscribe'),
+            result_type=affinity_types.Webhook,
+            json={
+                'webhook_url': url,
+                'subscriptions': events
+            }
         )

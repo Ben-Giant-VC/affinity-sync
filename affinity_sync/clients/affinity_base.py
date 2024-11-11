@@ -1,5 +1,5 @@
 import logging
-from typing import Type, get_origin, TypeVar, Any
+from typing import Type, get_origin, TypeVar, Any, Union
 
 import backoff
 import requests
@@ -77,5 +77,21 @@ class AffinityBase:
             inner_type = result_type.__args__[0]
 
             return [inner_type.model_validate(item) for item in response.json()]
+
+        if get_origin(result_type) is Union:
+            inner_types = result_type.__args__
+            errors = []
+
+            for inner_type in inner_types:
+                try:
+                    return inner_type.model_validate(response.json())
+                except Exception as e:
+                    errors.append(e)
+                    continue
+
+            for error in errors:
+                self.__logger.error(error)
+
+            raise errors[0]
 
         return result_type.model_validate(response.json())
