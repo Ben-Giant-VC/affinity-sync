@@ -38,6 +38,7 @@ class FieldCopier:
 
         if not self.source_entry:
             self.__logger.info('Not copying fields - no source entry found')
+            return
 
         source_field_values = {
             field_value.field_id: field_value for field_value in self.__client.fetch_field_values(
