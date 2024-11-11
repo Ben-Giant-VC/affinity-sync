@@ -70,7 +70,7 @@ class WebhookListener:
             time_since_last_event += 0.2
             time.sleep(0.2)
 
-            if round(time_since_last_event) % 20 == 0:
+            if round(time_since_last_event) % 20 == 0 and round(time_since_last_event) != 0:
                 self.__logger.info('No events received in the last 20s')
                 time_since_last_event = 0
 
