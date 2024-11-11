@@ -64,10 +64,14 @@ class WebhookListener:
         self.__logger.info('Webhook listener stopped')
 
     def __next__(self) -> affinity_types.WebhookEvent:
+        time_since_last_event = 0
 
         while not self.__queue:
-            self.__logger.info('No events in queue - waiting 2s')
-            time.sleep(2)
+            time_since_last_event += 0.2
+            time.sleep(0.2)
+
+            if time_since_last_event % 20 == 0:
+                self.__logger.info('No events received in the last 20s')
 
         payload = self.__queue.pop(0)
 
