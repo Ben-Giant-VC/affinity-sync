@@ -18,7 +18,7 @@ class FieldCopier:
         self.__new_entry = new_entry
         self.__source_list_ids = possible_source_list_ids
         self.__client = clients.AffinityClientV1(api_key=api_key)
-        self.__ignored_field_names = ignored_field_names or []
+        self.__ignored_field_names = [field.upper() for field in ignored_field_names] or []
 
     @functools.cached_property
     def source_entry(self) -> affinity_types.ListEntry | None:
@@ -65,7 +65,7 @@ class FieldCopier:
                 self.__logger.info(f'Field {source_field.name} not found in destination list')
                 continue
 
-            if destination_field.name in self.__ignored_field_names:
+            if destination_field.name.upper() in self.__ignored_field_names:
                 self.__logger.info(f'Ignoring field {destination_field.name}')
                 continue
 
