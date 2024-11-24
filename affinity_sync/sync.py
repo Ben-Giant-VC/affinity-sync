@@ -228,6 +228,7 @@ class Sync:
     def run(self):
 
         if not self.__postgres_client.acquire_lock():
+            self.__logger.info('Failed to acquire lock')
             return
 
         self.set_up_syncs()
