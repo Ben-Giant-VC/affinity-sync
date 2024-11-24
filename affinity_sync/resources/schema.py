@@ -9,6 +9,13 @@ BEGIN
 END $$;
 
 
+CREATE TABLE IF NOT EXISTS affinity.sync_running
+(
+    is_running BOOLEAN,
+    UNIQUE (is_running)
+);
+
+
 CREATE TABLE IF NOT EXISTS affinity.api_call_entitlement 
 (
     id              SERIAL PRIMARY KEY,

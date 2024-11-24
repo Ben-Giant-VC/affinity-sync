@@ -562,3 +562,16 @@ class PostgresClient:
                 limit=sql.Literal(limit)
             ), db_types.SyncLog
         )
+
+    def acquire_lock(self) -> bool:
+        self.__logger.info('Acquiring sync lock')
+        try:
+            self.execute(sql.SQL('INSERT INTO affinity.sync_running (is_running) VALUES (TRUE)'))
+
+            return True
+        except psycopg.errors.UniqueViolation:
+            return False
+
+    def release_lock(self) -> None:
+        self.__logger.info('Releasing sync lock')
+        self.execute(sql.SQL('DELETE FROM affinity.sync_running'))

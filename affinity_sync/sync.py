@@ -226,7 +226,13 @@ class Sync:
         self.__postgres_client.insert_sync_log(db_types.SyncLog(sync_id=sync.id))
 
     def run(self):
+
+        if not self.__postgres_client.acquire_lock():
+            return
+
         self.set_up_syncs()
 
         for sync in self.__postgres_client.fetch_due_syncs():
             self.__do_sync(sync)
+
+        self.__postgres_client.release_lock()
