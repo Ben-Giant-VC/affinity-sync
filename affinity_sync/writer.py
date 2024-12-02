@@ -183,21 +183,39 @@ class Writer:
         if person:
             return person
 
-        person = self.__affinity_v1.find_person_by_name(
-            first_name=first_name,
-            last_name=last_name,
-            take_best_match=take_best_match
-        )
-
-        if person:
-            return person
-
         return self.__affinity_v1.create_person(
             new_person=affinity_types.NewPerson(
                 first_name=first_name,
                 last_name=last_name,
                 emails=emails,
                 organization_ids=organization_ids
+            )
+        )
+
+    @insert_entitlement_after
+    def find_company(self, domain: str, linkedin_url: str) -> affinity_types.Company | None:
+        self.__logger.info(f'Finding company - {domain} - {linkedin_url}')
+        company = self.__affinity_v1.find_company_by_domain(domain=domain, take_best_match=True)
+
+        if company:
+            return company
+
+        ids = self.__reader.get_company_ids_by_field('LinkedIn URL', [linkedin_url])
+
+        if len(ids) == 1:
+            return self.__affinity_v1.find_company_by_id(ids[0])
+
+        return None
+
+    @insert_entitlement_after
+    def create_company(self, name: str, domain: str) -> affinity_types.Company:
+        self.__logger.info(f'Creating company - {name} - {domain}')
+
+        return self.__affinity_v1.create_company(
+            new_company=affinity_types.NewCompany(
+                name=name,
+                domain=domain,
+                person_ids=[]
             )
         )
 
@@ -237,12 +255,6 @@ class Writer:
 
         if company:
             self.__logger.info(f'Company found by domain - {domain}')
-            return company
-
-        company = self.__affinity_v1.find_company_by_name(name=name, take_best_match=take_best_match)
-
-        if company:
-            self.__logger.info(f'Company found by name - {name}')
             return company
 
         return self.__affinity_v1.create_company(
