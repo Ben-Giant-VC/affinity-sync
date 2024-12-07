@@ -153,7 +153,6 @@ class Writer:
             organization_ids: list[int] | None = None,
             cached_field_name: str | None = None,
             cached_filed_value: Any | None = None,
-            take_best_match: bool = False
     ) -> affinity_types.Person:
         self.__logger.info(f'Finding or creating person - {first_name} {last_name}')
 
@@ -225,6 +224,7 @@ class Writer:
             name: str,
             domain: str | None,
             take_best_match: bool = False,
+            match_on_name: bool = False,
             cached_field_name: str | None = None,
             cached_filed_value: Any | None = None
     ) -> affinity_types.Company:
@@ -256,6 +256,13 @@ class Writer:
         if company:
             self.__logger.info(f'Company found by domain - {domain}')
             return company
+
+        if match_on_name:
+            company = self.__affinity_v1.find_company_by_name(name=name, take_best_match=take_best_match)
+
+            if company:
+                self.__logger.info(f'Company found by name - {name}')
+                return company
 
         return self.__affinity_v1.create_company(
             new_company=affinity_types.NewCompany(
