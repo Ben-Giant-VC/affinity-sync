@@ -27,14 +27,14 @@ class ApiCallEntitlement(base.Base, extra='ignore'):
     )
     inserted_at: datetime.datetime | None = None
 
-    @pydantic.field_validator('org_limit', mode='pre')
+    @pydantic.field_validator('org_limit', mode='before')
     def validate_org_limit(cls, org_limit):
         if org_limit == 'unlimited':
             return 9_999_999
 
         return org_limit
 
-    @pydantic.field_validator('org_remaining', mode='pre')
+    @pydantic.field_validator('org_remaining', mode='before')
     def validate_org_remaining(cls, org_remaining):
         if org_remaining == 'unlimited':
             return 9_999_999
