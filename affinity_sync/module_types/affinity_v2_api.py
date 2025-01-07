@@ -27,6 +27,20 @@ class ApiCallEntitlement(base.Base, extra='ignore'):
     )
     inserted_at: datetime.datetime | None = None
 
+    @pydantic.field_validator('org_limit', mode='pre')
+    def validate_org_limit(cls, org_limit):
+        if org_limit == 'unlimited':
+            return 9_999_999
+
+        return org_limit
+
+    @pydantic.field_validator('org_remaining', mode='pre')
+    def validate_org_remaining(cls, org_remaining):
+        if org_remaining == 'unlimited':
+            return 9_999_999
+
+        return org_remaining
+
 
 class Pagination(base.Base):
     next_url: str | None = pydantic.Field(validation_alias='nextUrl')
