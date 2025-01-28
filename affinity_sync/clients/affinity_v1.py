@@ -339,13 +339,22 @@ class AffinityClientV1(affinity_base.AffinityBase):
             json={'entity_id': entity_id}
         )
 
+    def __fetch_files_page(self, next_page_token: str | None) -> affinity_types.EntityFilesResponse:
+        self.__logger.debug('Doing fetch files pagination call')
+        return self._send_request(
+            method='get',
+            url=self.__url('entity-files'),
+            params={'page_token': next_page_token},
+            result_type=affinity_types.EntityFilesResponse
+        )
+
     def fetch_all_entity_files(
             self,
-            entity_id: int,
-            entity_type: Literal['person', 'company', 'opportunity']
+            entity_id: int | None = None,
+            entity_type: Literal['person', 'company', 'opportunity'] | None = None
     ) -> list[affinity_types.EntityFile]:
         self.__logger.debug(f'Fetching entity files - {entity_id} - {entity_type}')
-        return self._send_request(
+        response = self._send_request(
             method='get',
             url=self.__url('entity-files'),
             params={
@@ -354,7 +363,15 @@ class AffinityClientV1(affinity_base.AffinityBase):
                 'opportunity_id': entity_id if entity_type == 'opportunity' else None
             },
             result_type=affinity_types.EntityFilesResponse
-        ).entity_files
+        )
+
+        entity_files = response.entity_files
+
+        while response.next_page_token:
+            response = self.__fetch_files_page(response.next_page_token)
+            entity_files.extend(response.entity_files)
+
+        return entity_files
 
     def add_file_to_entity(
             self,
@@ -411,7 +428,6 @@ class AffinityClientV1(affinity_base.AffinityBase):
             next_page_token: str | None
     ) -> affinity_types.EmailInteractionQueryResponse | affinity_types.CallOrMeetingInteractionQueryResponse:
         self.__logger.debug('Doing fetch interactions pagination call')
-        print('Doing fetch interactions pagination call')
 
         interaction_number = {
             'meeting': 0,
