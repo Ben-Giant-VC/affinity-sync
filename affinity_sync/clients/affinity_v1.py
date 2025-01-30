@@ -543,20 +543,21 @@ class AffinityClientV1(affinity_base.AffinityBase):
             }
         )
 
-    def __list_notes(self) -> affinity_types.NoteQueryResponse:
+    def __list_notes(self, page_token: str | None) -> affinity_types.NoteQueryResponse:
         self.__logger.debug('Listing notes')
         return self._send_request(
             method='get',
             url=self.__url('notes'),
+            params={'page_token': page_token},
             result_type=affinity_types.NoteQueryResponse
         )
 
     def list_notes(self) -> Generator[affinity_types.Note, None, None]:
-        response = self.__list_notes()
+        response = self.__list_notes(None)
         notes = response.get_results()
 
         yield from notes
 
         while response.next_page_token:
-            response = self.__list_notes()
+            response = self.__list_notes(response.next_page_token)
             yield from response.get_results()
