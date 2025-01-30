@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import Literal, Union
+from typing import Literal, Union, Generator
 
 import requests
 
@@ -542,3 +542,21 @@ class AffinityClientV1(affinity_base.AffinityBase):
                 'subscriptions': events
             }
         )
+
+    def __list_notes(self) -> affinity_types.NoteQueryResponse:
+        self.__logger.debug('Listing notes')
+        return self._send_request(
+            method='get',
+            url=self.__url('notes'),
+            result_type=affinity_types.NoteQueryResponse
+        )
+
+    def list_notes(self) -> Generator[affinity_types.Note, None, None]:
+        response = self.__list_notes()
+        notes = response.get_results()
+
+        yield from notes
+
+        while response.next_page_token:
+            response = self.__list_notes()
+            yield from response.get_results()

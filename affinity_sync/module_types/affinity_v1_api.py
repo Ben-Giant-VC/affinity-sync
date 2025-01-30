@@ -214,7 +214,7 @@ class Note(base.Base):
     associated_person_ids: list[int]
     interaction_person_ids: list[int]
     interaction_id: int | None
-    interaction_type: str | None
+    interaction_type: int | None
     is_meeting: bool
     mentioned_person_ids: list[int]
     organization_ids: list[int]
@@ -232,6 +232,13 @@ class PaginatedResponse(base.Base, abc.ABC):
     @abc.abstractmethod
     def get_results(self) -> list[base.Base]:
         pass
+
+
+class NoteQueryResponse(PaginatedResponse):
+    notes: list[Note]
+
+    def get_results(self) -> list[Note]:
+        return self.notes
 
 
 class UnknownEmail(base.Base):
